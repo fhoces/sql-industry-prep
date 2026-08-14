@@ -572,6 +572,9 @@ JOIN neighborhoods nei ON req.pickup_nbhd_id = nei.nbhd_id
 
 .small[
 **3. Aggregate per neighborhood, filter on the aggregate, sort, cap.**
+`WHERE` filters rows *before* grouping — no per-group count exists yet at
+that point, so it can't reference one. `HAVING` runs *after* `GROUP BY`,
+once each group's aggregate is already computed.
 ```sql
 GROUP BY nei.name
 HAVING COUNT(*) &gt;= 50
