@@ -449,6 +449,64 @@ ORDER BY avg_fare DESC;
 ]
 
 ---
+name: q5-nbhd-revenue
+
+# Q5. Top 3 pickup neighborhoods by total fare revenue?
+
+<a class="write-ref" href="../module-03/slides.html#write-order">WO</a>
+*Hint: only count neighborhoods with at least 50 rides. That's a group-level
+condition (depends on `COUNT(*)`), so it's `HAVING`, not `WHERE`.*
+
+.small[
+**1. Which tables?** `fare_usd` is in `rides`; neighborhood name is in `neighborhoods`.
+```sql
+FROM rides r
+```
+]
+
+--
+
+.small[
+**2. Chain the joins.**
+```sql
+JOIN requests req      ON r.request_id = req.request_id
+JOIN neighborhoods nei ON req.pickup_nbhd_id = nei.nbhd_id
+```
+]
+
+--
+
+.small[
+**3. Aggregate per neighborhood, filter on the aggregate, sort, cap.**
+```sql
+GROUP BY nei.name
+HAVING COUNT(*) >= 50
+ORDER BY total_revenue DESC
+LIMIT 3
+```
+]
+
+---
+count: false
+
+# Q5. Top 3 pickup neighborhoods by total fare revenue? (cont.)
+
+.small[
+```{sql q-nbhd-revenue, eval=TRUE}
+SELECT nei.name AS neighborhood_name,
+       ROUND(SUM(r.fare_usd), 2) AS total_revenue,
+       COUNT(*) AS n_rides
+FROM   rides r
+JOIN   requests req      ON r.request_id = req.request_id
+JOIN   neighborhoods nei ON req.pickup_nbhd_id = nei.nbhd_id
+GROUP BY nei.name
+HAVING COUNT(*) >= 50
+ORDER BY total_revenue DESC
+LIMIT 3;
+```
+]
+
+---
 class: inverse
 
 # The Key Takeaways
