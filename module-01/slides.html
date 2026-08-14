@@ -471,6 +471,70 @@ Table: 1 records
 |       39000|        28949|      0.742|          1.246|
 
 ---
+name: q4-city-surge
+
+# Q4. Average fare by city, for surged rides only?
+
+&lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
+*Hint: `rides` has no `city_id` — chase foreign keys: `rides → requests →
+neighborhoods → cities`. Filters on `surge_mult` are row-level, so `WHERE`
+(this previews the JOIN pattern from Module 2).*
+
+.small[
+**1. Which tables?** `fare_usd`/`surge_mult` are in `rides`; city needs a chain.
+```sql
+FROM rides r
+```
+
+**2. Chain the joins to `cities`.**
+```sql
+JOIN requests req    ON r.request_id = req.request_id
+JOIN neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+JOIN cities c         ON n.city_id = c.city_id
+```
+
+**3. Filter before aggregating, then group and sort.**
+```sql
+WHERE r.surge_mult &gt; 1
+GROUP BY c.name
+ORDER BY avg_fare DESC
+```
+]
+
+---
+count: false
+
+# Q4. Average fare by city, for surged rides only? (cont.)
+
+.small[
+
+```sql
+SELECT c.name AS city_name,
+       ROUND(AVG(r.fare_usd), 2) AS avg_fare
+FROM   rides r
+JOIN   requests req    ON r.request_id = req.request_id
+JOIN   neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+JOIN   cities c         ON n.city_id = c.city_id
+WHERE  r.surge_mult &gt; 1
+GROUP BY c.name
+ORDER BY avg_fare DESC;
+```
+
+
+
+
+Table: 5 records
+
+|city_name     | avg_fare|
+|:-------------|--------:|
+|Boston        |    12.71|
+|San Francisco |    12.65|
+|Chicago       |    12.63|
+|Austin        |    12.63|
+|Seattle       |    12.62|
+]
+
+---
 class: inverse
 
 # The Key Takeaways
