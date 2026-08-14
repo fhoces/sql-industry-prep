@@ -217,6 +217,7 @@ This execution order matters: `WHERE` happens **before** SELECT, so you can't us
 --
 
 **4. `WHERE` filters rows; `HAVING` filters groups.** No aggregates in `WHERE`.
+&lt;span style="font-size:70%;"&gt;Order: &lt;span style="color:#1f78b4;"&gt;&lt;b&gt;①F&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#33a02c;"&gt;&lt;b&gt;②W&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#ff7f00;"&gt;&lt;b&gt;③G&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#e31a1c;"&gt;&lt;b&gt;④H&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#6a3d9a;"&gt;&lt;b&gt;⑤S&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#b15928;"&gt;&lt;b&gt;⑥O&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#555;"&gt;&lt;b&gt;⑦L&lt;/b&gt;&lt;/span&gt;&lt;/span&gt;
 
 --
 
@@ -361,6 +362,7 @@ The `CASE WHEN ... THEN 1 ELSE 0 END` trick is the SQL version of `mean(x == "fo
 --
 
 - **Column aliases in `WHERE`:** doesn't work. Repeat the expression or wrap in a subquery.
+  &lt;span style="font-size:70%;"&gt;Order: &lt;span style="color:#1f78b4;"&gt;&lt;b&gt;①F&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#33a02c;"&gt;&lt;b&gt;②W&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#ff7f00;"&gt;&lt;b&gt;③G&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#e31a1c;"&gt;&lt;b&gt;④H&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#6a3d9a;"&gt;&lt;b&gt;⑤S&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#b15928;"&gt;&lt;b&gt;⑥O&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#555;"&gt;&lt;b&gt;⑦L&lt;/b&gt;&lt;/span&gt;&lt;/span&gt;
 
 --
 
@@ -502,6 +504,7 @@ JOIN cities c         ON n.city_id = c.city_id
 
 .small[
 **3. Filter before aggregating, then group and sort.**
+&lt;span style="font-size:87%;"&gt;Order: &lt;span style="color:#1f78b4;"&gt;&lt;b&gt;①F&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#33a02c;"&gt;&lt;b&gt;②W&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#ff7f00;"&gt;&lt;b&gt;③G&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#e31a1c;"&gt;&lt;b&gt;④H&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#6a3d9a;"&gt;&lt;b&gt;⑤S&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#b15928;"&gt;&lt;b&gt;⑥O&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#555;"&gt;&lt;b&gt;⑦L&lt;/b&gt;&lt;/span&gt;&lt;/span&gt;
 ```sql
 WHERE r.surge_mult &gt; 1
 GROUP BY c.name
@@ -575,6 +578,7 @@ JOIN neighborhoods nei ON req.pickup_nbhd_id = nei.nbhd_id
 `WHERE` filters rows *before* grouping — no per-group count exists yet at
 that point, so it can't reference one. `HAVING` runs *after* `GROUP BY`,
 once each group's aggregate is already computed.
+&lt;span style="font-size:87%;"&gt;Order: &lt;span style="color:#1f78b4;"&gt;&lt;b&gt;①F&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#33a02c;"&gt;&lt;b&gt;②W&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#ff7f00;"&gt;&lt;b&gt;③G&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#e31a1c;"&gt;&lt;b&gt;④H&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#6a3d9a;"&gt;&lt;b&gt;⑤S&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#b15928;"&gt;&lt;b&gt;⑥O&lt;/b&gt;&lt;/span&gt;→&lt;span style="color:#555;"&gt;&lt;b&gt;⑦L&lt;/b&gt;&lt;/span&gt;&lt;/span&gt;
 ```sql
 GROUP BY nei.name
 HAVING COUNT(*) &gt;= 50

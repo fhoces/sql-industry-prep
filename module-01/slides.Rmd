@@ -215,6 +215,7 @@ This execution order matters: `WHERE` happens **before** SELECT, so you can't us
 --
 
 **4. `WHERE` filters rows; `HAVING` filters groups.** No aggregates in `WHERE`.
+<span style="font-size:70%;">Order: <span style="color:#1f78b4;"><b>①F</b></span>→<span style="color:#33a02c;"><b>②W</b></span>→<span style="color:#ff7f00;"><b>③G</b></span>→<span style="color:#e31a1c;"><b>④H</b></span>→<span style="color:#6a3d9a;"><b>⑤S</b></span>→<span style="color:#b15928;"><b>⑥O</b></span>→<span style="color:#555;"><b>⑦L</b></span></span>
 
 --
 
@@ -316,6 +317,7 @@ The `CASE WHEN ... THEN 1 ELSE 0 END` trick is the SQL version of `mean(x == "fo
 --
 
 - **Column aliases in `WHERE`:** doesn't work. Repeat the expression or wrap in a subquery.
+  <span style="font-size:70%;">Order: <span style="color:#1f78b4;"><b>①F</b></span>→<span style="color:#33a02c;"><b>②W</b></span>→<span style="color:#ff7f00;"><b>③G</b></span>→<span style="color:#e31a1c;"><b>④H</b></span>→<span style="color:#6a3d9a;"><b>⑤S</b></span>→<span style="color:#b15928;"><b>⑥O</b></span>→<span style="color:#555;"><b>⑦L</b></span></span>
 
 --
 
@@ -422,6 +424,7 @@ JOIN cities c         ON n.city_id = c.city_id
 
 .small[
 **3. Filter before aggregating, then group and sort.**
+<span style="font-size:87%;">Order: <span style="color:#1f78b4;"><b>①F</b></span>→<span style="color:#33a02c;"><b>②W</b></span>→<span style="color:#ff7f00;"><b>③G</b></span>→<span style="color:#e31a1c;"><b>④H</b></span>→<span style="color:#6a3d9a;"><b>⑤S</b></span>→<span style="color:#b15928;"><b>⑥O</b></span>→<span style="color:#555;"><b>⑦L</b></span></span>
 ```sql
 WHERE r.surge_mult > 1
 GROUP BY c.name
@@ -481,6 +484,7 @@ JOIN neighborhoods nei ON req.pickup_nbhd_id = nei.nbhd_id
 `WHERE` filters rows *before* grouping — no per-group count exists yet at
 that point, so it can't reference one. `HAVING` runs *after* `GROUP BY`,
 once each group's aggregate is already computed.
+<span style="font-size:87%;">Order: <span style="color:#1f78b4;"><b>①F</b></span>→<span style="color:#33a02c;"><b>②W</b></span>→<span style="color:#ff7f00;"><b>③G</b></span>→<span style="color:#e31a1c;"><b>④H</b></span>→<span style="color:#6a3d9a;"><b>⑤S</b></span>→<span style="color:#b15928;"><b>⑥O</b></span>→<span style="color:#555;"><b>⑦L</b></span></span>
 ```sql
 GROUP BY nei.name
 HAVING COUNT(*) >= 50
