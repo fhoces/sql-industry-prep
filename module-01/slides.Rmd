@@ -405,14 +405,22 @@ neighborhoods → cities`. Filters on `surge_mult` are row-level, so `WHERE`
 ```sql
 FROM rides r
 ```
+]
 
+--
+
+.small[
 **2. Chain the joins to `cities`.**
 ```sql
 JOIN requests req    ON r.request_id = req.request_id
 JOIN neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
 JOIN cities c         ON n.city_id = c.city_id
 ```
+]
 
+--
+
+.small[
 **3. Filter before aggregating, then group and sort.**
 ```sql
 WHERE r.surge_mult > 1
