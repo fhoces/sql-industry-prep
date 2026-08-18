@@ -352,6 +352,7 @@ SELECT strftime('%H', started_at) AS hour,
 FROM   rides
 GROUP BY hour
 ORDER BY hour
+-- LIMIT is display-only: the full result has 24 rows, one per hour
 LIMIT 6;
 ```
 
@@ -374,6 +375,7 @@ SELECT strftime('%Y-%m', requested_at) AS month,
 FROM   requests
 GROUP BY month
 ORDER BY month
+-- LIMIT is display-only: the full result has 12 rows, one per month
 LIMIT 6;
 ```
 
