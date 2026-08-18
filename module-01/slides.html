@@ -483,7 +483,6 @@ name: q4-city-surge
 
 # Q4. Average fare by city, for surged rides only?
 
-&lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
 *Hint: `rides` has no `city_id` — chase foreign keys: `rides → requests →
 neighborhoods → cities`. Filters on `surge_mult` are row-level, so `WHERE`
 (this previews the JOIN pattern from Module 2).*
@@ -556,7 +555,6 @@ name: q5-nbhd-revenue
 
 # Q5. Top 3 pickup neighborhoods by total fare revenue?
 
-&lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
 *Hint: only count neighborhoods with at least 50 rides. That's a group-level
 condition (depends on `COUNT(*)`), so it's `HAVING`, not `WHERE`.*
 
@@ -630,7 +628,6 @@ name: q6-day-of-week
 
 # Q6. Rides and avg fare by day of week, Mon-Sun order?
 
-&lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
 *Hint: `strftime('%w', started_at)` returns `'0'`-`'6'` where `'0'` = Sunday.
 Label with `CASE`, and don't sort alphabetically — build a second `CASE` as
 a sort key.*
