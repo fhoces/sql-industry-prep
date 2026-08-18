@@ -104,11 +104,22 @@ dbWriteTable(con, "requests", requests, overwrite = TRUE)
 
 ride_idx <- which(requests$accepted == 1)
 n_rides <- length(ride_idx)
+# as.character(POSIXct) drops " 00:00:00" for midnight-exact timestamps, and
+# as.POSIXct(character) picks its format from the FIRST element -- if that one
+# is date-only, every element parses date-only and the time of day is silently
+# discarded. Parse with the full format first, then fill the midnight-only
+# stragglers explicitly.
+parse_ts <- function(x) {
+  out <- as.POSIXct(x, format = "%Y-%m-%d %H:%M:%S")
+  mid <- is.na(out)
+  out[mid] <- as.POSIXct(x[mid], format = "%Y-%m-%d")
+  out
+}
 rides <- tibble(
   ride_id      = 1:n_rides,
   request_id   = requests$request_id[ride_idx],
   driver_id    = requests$accepted_by_driver_id[ride_idx],
-  started_at   = as.character(as.POSIXct(requests$requested_at[ride_idx]) +
+  started_at   = as.character(parse_ts(requests$requested_at[ride_idx]) +
                               runif(n_rides, 60, 600)),
   ended_at     = NA_character_,
   distance_mi  = round(rlnorm(n_rides, 1.5, 0.5), 2),
@@ -119,7 +130,7 @@ rides <- tibble(
 )
 rides <- rides |>
   mutate(
-    ended_at = as.character(as.POSIXct(started_at) + distance_mi * 180 + rnorm(n_rides, 0, 60)),
+    ended_at = as.character(parse_ts(started_at) + distance_mi * 180 + rnorm(n_rides, 0, 60)),
     fare_usd = round(2.50 + 1.50 * distance_mi * surge_mult + rnorm(n_rides, 0, 1), 2)
   )
 
