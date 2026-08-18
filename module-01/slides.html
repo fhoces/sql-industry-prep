@@ -620,6 +620,97 @@ Table: 3 records
 ]
 
 ---
+name: q6-day-of-week
+
+# Q6. Rides and avg fare by day of week, Mon-Sun order?
+
+&lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
+*Hint: `strftime('%w', started_at)` returns `'0'`-`'6'` where `'0'` = Sunday.
+Label with `CASE`, and don't sort alphabetically — build a second `CASE` as
+a sort key.*
+
+.small[
+**1. Label the day.** `CASE &lt;expr&gt; WHEN &lt;value&gt; THEN ... END` — no commas
+between branches, `%w` starts at Sunday = `'0'`.
+```sql
+CASE strftime('%w', started_at)
+  WHEN '1' THEN 'Mon' WHEN '2' THEN 'Tue' WHEN '3' THEN 'Wed'
+  WHEN '4' THEN 'Thu' WHEN '5' THEN 'Fri' WHEN '6' THEN 'Sat'
+  WHEN '0' THEN 'Sun'
+END AS day_of_week
+```
+]
+
+--
+
+.small[
+**2. Aggregate, grouping on the alias.** `GROUP BY`/`ORDER BY` can
+reference a `SELECT` alias (a convenience exception); `WHERE` can't — it
+runs before the alias exists.
+```sql
+COUNT(*) AS total_rides,
+ROUND(AVG(fare_usd), 2) AS avg_fare
+...
+GROUP BY day_of_week
+```
+]
+
+--
+
+.small[
+**3. Sort Mon→Sun, not alphabetically.** A raw `%w` column would put Sunday
+(`'0'`) first; a second `CASE` gives an explicit sort key instead.
+```sql
+ORDER BY CASE day_of_week
+  WHEN 'Mon' THEN 1 WHEN 'Tue' THEN 2 WHEN 'Wed' THEN 3
+  WHEN 'Thu' THEN 4 WHEN 'Fri' THEN 5 WHEN 'Sat' THEN 6
+  WHEN 'Sun' THEN 7
+END
+```
+]
+
+---
+count: false
+
+# Q6. Rides and avg fare by day of week, Mon-Sun order? (cont.)
+
+.small[
+
+```sql
+SELECT
+    CASE strftime('%w', started_at)
+        WHEN '1' THEN 'Mon' WHEN '2' THEN 'Tue' WHEN '3' THEN 'Wed'
+        WHEN '4' THEN 'Thu' WHEN '5' THEN 'Fri' WHEN '6' THEN 'Sat'
+        WHEN '0' THEN 'Sun'
+    END AS day_of_week,
+    COUNT(*) AS total_rides,
+    ROUND(AVG(fare_usd), 2) AS avg_fare
+FROM rides r
+GROUP BY day_of_week
+ORDER BY CASE day_of_week
+    WHEN 'Mon' THEN 1 WHEN 'Tue' THEN 2 WHEN 'Wed' THEN 3
+    WHEN 'Thu' THEN 4 WHEN 'Fri' THEN 5 WHEN 'Sat' THEN 6
+    WHEN 'Sun' THEN 7
+END;
+```
+
+
+
+
+Table: 7 records
+
+|day_of_week | total_rides| avg_fare|
+|:-----------|-----------:|--------:|
+|Mon         |        5510|    12.10|
+|Tue         |        5595|    12.11|
+|Wed         |        5621|    11.94|
+|Thu         |        5483|    11.98|
+|Fri         |        5578|    12.10|
+|Sat         |        5595|    11.84|
+|Sun         |        5618|    12.02|
+]
+
+---
 class: inverse
 
 # The Key Takeaways

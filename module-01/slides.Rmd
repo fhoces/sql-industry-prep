@@ -514,6 +514,81 @@ LIMIT 3;
 ]
 
 ---
+name: q6-day-of-week
+
+# Q6. Rides and avg fare by day of week, Mon-Sun order?
+
+<a class="write-ref" href="../module-03/slides.html#write-order">WO</a>
+*Hint: `strftime('%w', started_at)` returns `'0'`-`'6'` where `'0'` = Sunday.
+Label with `CASE`, and don't sort alphabetically — build a second `CASE` as
+a sort key.*
+
+.small[
+**1. Label the day.** `CASE <expr> WHEN <value> THEN ... END` — no commas
+between branches, `%w` starts at Sunday = `'0'`.
+```sql
+CASE strftime('%w', started_at)
+  WHEN '1' THEN 'Mon' WHEN '2' THEN 'Tue' WHEN '3' THEN 'Wed'
+  WHEN '4' THEN 'Thu' WHEN '5' THEN 'Fri' WHEN '6' THEN 'Sat'
+  WHEN '0' THEN 'Sun'
+END AS day_of_week
+```
+]
+
+--
+
+.small[
+**2. Aggregate, grouping on the alias.** `GROUP BY`/`ORDER BY` can
+reference a `SELECT` alias (a convenience exception); `WHERE` can't — it
+runs before the alias exists.
+```sql
+COUNT(*) AS total_rides,
+ROUND(AVG(fare_usd), 2) AS avg_fare
+...
+GROUP BY day_of_week
+```
+]
+
+--
+
+.small[
+**3. Sort Mon→Sun, not alphabetically.** A raw `%w` column would put Sunday
+(`'0'`) first; a second `CASE` gives an explicit sort key instead.
+```sql
+ORDER BY CASE day_of_week
+  WHEN 'Mon' THEN 1 WHEN 'Tue' THEN 2 WHEN 'Wed' THEN 3
+  WHEN 'Thu' THEN 4 WHEN 'Fri' THEN 5 WHEN 'Sat' THEN 6
+  WHEN 'Sun' THEN 7
+END
+```
+]
+
+---
+count: false
+
+# Q6. Rides and avg fare by day of week, Mon-Sun order? (cont.)
+
+.small[
+```{sql q-day-of-week, eval=TRUE}
+SELECT
+    CASE strftime('%w', started_at)
+        WHEN '1' THEN 'Mon' WHEN '2' THEN 'Tue' WHEN '3' THEN 'Wed'
+        WHEN '4' THEN 'Thu' WHEN '5' THEN 'Fri' WHEN '6' THEN 'Sat'
+        WHEN '0' THEN 'Sun'
+    END AS day_of_week,
+    COUNT(*) AS total_rides,
+    ROUND(AVG(fare_usd), 2) AS avg_fare
+FROM rides r
+GROUP BY day_of_week
+ORDER BY CASE day_of_week
+    WHEN 'Mon' THEN 1 WHEN 'Tue' THEN 2 WHEN 'Wed' THEN 3
+    WHEN 'Thu' THEN 4 WHEN 'Fri' THEN 5 WHEN 'Sat' THEN 6
+    WHEN 'Sun' THEN 7
+END;
+```
+]
+
+---
 class: inverse
 
 # The Key Takeaways
