@@ -147,7 +147,7 @@ A 5-module SQL refresher targeted at **applied economist / data science** interv
 
 - **Database:** SQLite (`data/uber.sqlite`), built by `Rscript data/setup.R`
 - **Schema:** rides, requests, drivers, riders, neighborhoods, cities
-- **Format:** every module is concept → code → 3-5 interview-style questions
+- **Format:** every module is concept → code → 3-6 interview-style questions
 - **Goal:** be able to write the canonical analytical queries from a cold start
 
 ---
@@ -336,6 +336,8 @@ class: inverse, center, middle
 
 ---
 
+name: q1-fare-by-hour
+
 # Q1. What is the average fare by hour of day?
 
 <a class="write-ref" href="../module-03/slides.html#write-order">WO</a>
@@ -355,10 +357,12 @@ LIMIT 6;
 
 ---
 
+name: q2-conversion-rate
+
 # Q2. What is the monthly conversion rate (requests → accepted)?
 
 <a class="write-ref" href="../module-03/slides.html#write-order">WO</a>
-*Hint: you need `SUM(accepted) / COUNT(*)` and watch out for integer division.*
+_Hint: you need `SUM(accepted) / COUNT(*)` and watch out for integer division._
 
 --
 
@@ -374,6 +378,8 @@ LIMIT 6;
 ```
 
 ---
+
+name: q3-surge-rate
 
 # Q3. How often does surge pricing kick in, and what's the average multiplier?
 
@@ -416,7 +422,7 @@ FROM rides r
 ```sql
 JOIN requests req    ON r.request_id = req.request_id
 JOIN neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
-JOIN cities c         ON n.city_id = c.city_id
+JOIN cities c        ON n.city_id = c.city_id
 ```
 ]
 
@@ -444,7 +450,7 @@ SELECT c.name AS city_name,
 FROM   rides r
 JOIN   requests req    ON r.request_id = req.request_id
 JOIN   neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
-JOIN   cities c         ON n.city_id = c.city_id
+JOIN   cities c        ON n.city_id = c.city_id
 WHERE  r.surge_mult > 1
 GROUP BY c.name
 ORDER BY avg_fare DESC;
@@ -638,7 +644,7 @@ LIMIT 12;
 
 <table>
 <tr><th>#</th><th>Module</th><th>Status</th><th>Sample Code</th></tr>
-<tr><td>1</td><td>SELECT, WHERE, Aggregates <i>(just finished)</i></td><td>✓ done</td></tr>
+<tr><td>1</td><td>SELECT, WHERE, Aggregates <i>(just finished)</i></td><td>✓ done</td><td><a href="#sample">M1</a></td></tr>
 <tr><td><b>2</b></td><td><b>JOINs</b></td><td>next</td><td></td></tr>
 <tr><td>3</td><td>GROUP BY, HAVING, Conversion Funnels</td><td>upcoming</td><td></td></tr>
 <tr><td>4</td><td>Subqueries and CTEs</td><td>upcoming</td><td></td></tr>

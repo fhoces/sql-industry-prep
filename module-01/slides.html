@@ -149,7 +149,7 @@ A 5-module SQL refresher targeted at **applied economist / data science** interv
 
 - **Database:** SQLite (`data/uber.sqlite`), built by `Rscript data/setup.R`
 - **Schema:** rides, requests, drivers, riders, neighborhoods, cities
-- **Format:** every module is concept → code → 3-5 interview-style questions
+- **Format:** every module is concept → code → 3-6 interview-style questions
 - **Goal:** be able to write the canonical analytical queries from a cold start
 
 ---
@@ -381,6 +381,8 @@ class: inverse, center, middle
 
 ---
 
+name: q1-fare-by-hour
+
 # Q1. What is the average fare by hour of day?
 
 &lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
@@ -410,10 +412,12 @@ Table: 1 records
 
 ---
 
+name: q2-conversion-rate
+
 # Q2. What is the monthly conversion rate (requests → accepted)?
 
 &lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
-*Hint: you need `SUM(accepted) / COUNT(*)` and watch out for integer division.*
+_Hint: you need `SUM(accepted) / COUNT(*)` and watch out for integer division._
 
 --
 
@@ -444,6 +448,8 @@ Table: 6 records
 |2025-06 |       4199|       3311|       0.789|
 
 ---
+
+name: q3-surge-rate
 
 # Q3. How often does surge pricing kick in, and what's the average multiplier?
 
@@ -496,7 +502,7 @@ FROM rides r
 ```sql
 JOIN requests req    ON r.request_id = req.request_id
 JOIN neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
-JOIN cities c         ON n.city_id = c.city_id
+JOIN cities c        ON n.city_id = c.city_id
 ```
 ]
 
@@ -525,7 +531,7 @@ SELECT c.name AS city_name,
 FROM   rides r
 JOIN   requests req    ON r.request_id = req.request_id
 JOIN   neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
-JOIN   cities c         ON n.city_id = c.city_id
+JOIN   cities c        ON n.city_id = c.city_id
 WHERE  r.surge_mult &gt; 1
 GROUP BY c.name
 ORDER BY avg_fare DESC;
@@ -760,7 +766,7 @@ LIMIT 12;
 
 &lt;table&gt;
 &lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;Module&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;th&gt;Sample Code&lt;/th&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;SELECT, WHERE, Aggregates &lt;i&gt;(just finished)&lt;/i&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;SELECT, WHERE, Aggregates &lt;i&gt;(just finished)&lt;/i&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="#sample"&gt;M1&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td&gt;&lt;b&gt;2&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&lt;b&gt;JOINs&lt;/b&gt;&lt;/td&gt;&lt;td&gt;next&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;GROUP BY, HAVING, Conversion Funnels&lt;/td&gt;&lt;td&gt;upcoming&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td&gt;4&lt;/td&gt;&lt;td&gt;Subqueries and CTEs&lt;/td&gt;&lt;td&gt;upcoming&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;
