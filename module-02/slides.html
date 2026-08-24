@@ -476,6 +476,8 @@ class: inverse, center, middle
 
 # Q1. For each rider, how many unique drivers have they ridden with?
 
+--
+
 &lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
 *Hint: JOIN `rides` to `requests` (to get `rider_id`), then `COUNT(DISTINCT driver_id)`.*
 
@@ -510,6 +512,8 @@ Table: 5 records
 
 # Q2. For each ride, how many days had the driver been on the platform?
 
+--
+
 &lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
 *Hint: JOIN `rides` to `drivers`, then `julianday(started_at) - julianday(signup_date)`.*
 
@@ -541,6 +545,8 @@ Table: 5 records
 ---
 
 # Q3. Which rider-driver pairs have had 3 or more 5-star rides together?
+
+--
 
 &lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
 *Hint: JOIN `rides` to `requests`, filter for `rider_rating = 5`, GROUP BY the pair, HAVING &gt;= 3.*
@@ -576,9 +582,13 @@ name: q4-unaccepted-city
 
 # Q4. What share of requests go unaccepted, in each city?
 
+--
+
 *Hint: start `FROM requests`, not `FROM rides` — the unaccepted requests are
 exactly the ones with no ride, so starting from `rides` would drop the rows
 you're studying. Then LEFT JOIN and count the NULLs.*
+
+--
 
 .small[
 **1. Direction of the LEFT JOIN.** `requests` is the left (keep-everything)
@@ -655,8 +665,12 @@ name: q5-never-minority
 
 # Q5. Which drivers have *never* picked up from a majority-minority neighborhood?
 
+--
+
 *Hint: "never did X" is an anti-join. Build the set of drivers who* did
 *(pct_minority ≥ 0.8), then keep the drivers outside it.*
+
+--
 
 .small[
 **1. Build the "drivers who HAVE" set.** A subquery chaining
@@ -731,9 +745,13 @@ name: q6-prev-ride-gap
 
 # Q6. For each ride, how many hours since the driver's previous ride ended?
 
+--
+
 *Hint: this extends the [self-join slide](#self-join) — same
 `r1`/`r2` aliases, same time inequality in `ON`, plus a `julianday()`
 difference at the end.*
+
+--
 
 .small[
 **1. Self-join with an inequality.** `r2` ranges over the *earlier* rides by
