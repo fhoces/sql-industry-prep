@@ -58,16 +58,63 @@ knitr::opts_chunk$set(connection = "con")
 
 # The Four Flavors
 
-| JOIN type | Returns |
-|---|---|
-| `INNER JOIN` (or `JOIN`) | Only rows matched in both tables |
-| `LEFT JOIN` | All left rows; right rows where matched (NULL otherwise) |
-| `RIGHT JOIN` | All right rows; left where matched (rarely used — flip and use LEFT) |
-| `FULL OUTER JOIN` | All rows from both; NULLs where no match |
+<div style="display:flex; align-items:center; gap:16px; font-size:14px; margin:4px 0 16px 0; color:#333;">
+  <span><span style="display:inline-block;width:12px;height:12px;background:#cfe3f2;border:1.5px solid #1f78b4;vertical-align:-1px;"></span> rows only in <b>A</b> (left table)</span>
+  <span><span style="display:inline-block;width:12px;height:12px;background:linear-gradient(90deg,#cfe3f2,#ffe0bf);border:1.5px solid #888;vertical-align:-1px;"></span> key match in <b>both</b></span>
+  <span><span style="display:inline-block;width:12px;height:12px;background:#ffe0bf;border:1.5px solid #ff7f00;vertical-align:-1px;"></span> rows only in <b>B</b> (right table)</span>
+  <span style="color:#999;">dashed = not returned</span>
+</div>
+
+<div style="display:flex; flex-wrap:wrap; gap:18px 26px;">
+
+  <div style="flex:0 0 46%;">
+    <div style="font-size:16px; margin-bottom:4px;"><code>INNER JOIN</code> <span style="font-size:13.5px;color:#777;">only the matched rows</span></div>
+    <div style="display:flex; height:42px; font-size:14px; text-align:center;">
+      <div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;">only in A</div>
+      <div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;">match</div>
+      <div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;">only in B</div>
+    </div>
+  </div>
+
+  <div style="flex:0 0 46%;">
+    <div style="font-size:16px; margin-bottom:4px;"><code>LEFT JOIN</code> <span style="font-size:13.5px;color:#777;">all of A; B's columns NULL where unmatched</span></div>
+    <div style="display:flex; height:42px; font-size:14px; text-align:center;">
+      <div style="flex:1; border:1.5px solid #1f78b4; background:#cfe3f2; line-height:39px;">only in A <span style="color:#666;">(B = NULL)</span></div>
+      <div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;">match</div>
+      <div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;">only in B</div>
+    </div>
+  </div>
+
+  <div style="flex:0 0 46%;">
+    <div style="font-size:16px; margin-bottom:4px;"><code>RIGHT JOIN</code> <span style="font-size:13.5px;color:#777;">mirror image; rarely used: flip and use LEFT</span></div>
+    <div style="display:flex; height:42px; font-size:14px; text-align:center;">
+      <div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;">only in A</div>
+      <div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;">match</div>
+      <div style="flex:1; border:1.5px solid #ff7f00; background:#ffe0bf; line-height:39px;">only in B <span style="color:#666;">(A = NULL)</span></div>
+    </div>
+  </div>
+
+  <div style="flex:0 0 46%;">
+    <div style="font-size:16px; margin-bottom:4px;"><code>FULL OUTER JOIN</code> <span style="font-size:13.5px;color:#777;">everything; NULLs on whichever side is missing</span></div>
+    <div style="display:flex; height:42px; font-size:14px; text-align:center;">
+      <div style="flex:1; border:1.5px solid #1f78b4; background:#cfe3f2; line-height:39px;">only in A <span style="color:#666;">(B = NULL)</span></div>
+      <div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;">match</div>
+      <div style="flex:1; border:1.5px solid #ff7f00; background:#ffe0bf; line-height:39px;">only in B <span style="color:#666;">(A = NULL)</span></div>
+    </div>
+  </div>
+
+</div>
 
 --
 
-**The fifth pattern:** anti-join — "rows in A that have NO match in B". There's no `ANTI JOIN` keyword. You do it with `LEFT JOIN ... WHERE B.id IS NULL` or `NOT EXISTS`.
+<div style="margin-top:18px;">
+  <div style="font-size:16px; margin-bottom:4px;"><b>The fifth pattern:</b> <code>anti-join</code> <span style="font-size:13.5px;color:#777;">rows in A with NO match in B. No keyword: <code>LEFT JOIN ... WHERE b.id IS NULL</code> or <code>NOT EXISTS</code></span></div>
+  <div style="display:flex; height:42px; font-size:14px; text-align:center; width:46%;">
+    <div style="flex:1; border:1.5px solid #1f78b4; background:#cfe3f2; line-height:39px;">only in A</div>
+    <div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;">match</div>
+    <div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;">only in B</div>
+  </div>
+</div>
 
 ---
 

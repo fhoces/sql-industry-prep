@@ -63,16 +63,63 @@ class: center, middle, inverse, title-slide
 
 # The Four Flavors
 
-| JOIN type | Returns |
-|---|---|
-| `INNER JOIN` (or `JOIN`) | Only rows matched in both tables |
-| `LEFT JOIN` | All left rows; right rows where matched (NULL otherwise) |
-| `RIGHT JOIN` | All right rows; left where matched (rarely used — flip and use LEFT) |
-| `FULL OUTER JOIN` | All rows from both; NULLs where no match |
+&lt;div style="display:flex; align-items:center; gap:16px; font-size:14px; margin:4px 0 16px 0; color:#333;"&gt;
+  &lt;span&gt;&lt;span style="display:inline-block;width:12px;height:12px;background:#cfe3f2;border:1.5px solid #1f78b4;vertical-align:-1px;"&gt;&lt;/span&gt; rows only in &lt;b&gt;A&lt;/b&gt; (left table)&lt;/span&gt;
+  &lt;span&gt;&lt;span style="display:inline-block;width:12px;height:12px;background:linear-gradient(90deg,#cfe3f2,#ffe0bf);border:1.5px solid #888;vertical-align:-1px;"&gt;&lt;/span&gt; key match in &lt;b&gt;both&lt;/b&gt;&lt;/span&gt;
+  &lt;span&gt;&lt;span style="display:inline-block;width:12px;height:12px;background:#ffe0bf;border:1.5px solid #ff7f00;vertical-align:-1px;"&gt;&lt;/span&gt; rows only in &lt;b&gt;B&lt;/b&gt; (right table)&lt;/span&gt;
+  &lt;span style="color:#999;"&gt;dashed = not returned&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;div style="display:flex; flex-wrap:wrap; gap:18px 26px;"&gt;
+
+  &lt;div style="flex:0 0 46%;"&gt;
+    &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;code&gt;INNER JOIN&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;only the matched rows&lt;/span&gt;&lt;/div&gt;
+    &lt;div style="display:flex; height:42px; font-size:14px; text-align:center;"&gt;
+      &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in A&lt;/div&gt;
+      &lt;div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;"&gt;match&lt;/div&gt;
+      &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in B&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div style="flex:0 0 46%;"&gt;
+    &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;code&gt;LEFT JOIN&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;all of A; B's columns NULL where unmatched&lt;/span&gt;&lt;/div&gt;
+    &lt;div style="display:flex; height:42px; font-size:14px; text-align:center;"&gt;
+      &lt;div style="flex:1; border:1.5px solid #1f78b4; background:#cfe3f2; line-height:39px;"&gt;only in A &lt;span style="color:#666;"&gt;(B = NULL)&lt;/span&gt;&lt;/div&gt;
+      &lt;div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;"&gt;match&lt;/div&gt;
+      &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in B&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div style="flex:0 0 46%;"&gt;
+    &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;code&gt;RIGHT JOIN&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;mirror image; rarely used: flip and use LEFT&lt;/span&gt;&lt;/div&gt;
+    &lt;div style="display:flex; height:42px; font-size:14px; text-align:center;"&gt;
+      &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in A&lt;/div&gt;
+      &lt;div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;"&gt;match&lt;/div&gt;
+      &lt;div style="flex:1; border:1.5px solid #ff7f00; background:#ffe0bf; line-height:39px;"&gt;only in B &lt;span style="color:#666;"&gt;(A = NULL)&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div style="flex:0 0 46%;"&gt;
+    &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;code&gt;FULL OUTER JOIN&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;everything; NULLs on whichever side is missing&lt;/span&gt;&lt;/div&gt;
+    &lt;div style="display:flex; height:42px; font-size:14px; text-align:center;"&gt;
+      &lt;div style="flex:1; border:1.5px solid #1f78b4; background:#cfe3f2; line-height:39px;"&gt;only in A &lt;span style="color:#666;"&gt;(B = NULL)&lt;/span&gt;&lt;/div&gt;
+      &lt;div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;"&gt;match&lt;/div&gt;
+      &lt;div style="flex:1; border:1.5px solid #ff7f00; background:#ffe0bf; line-height:39px;"&gt;only in B &lt;span style="color:#666;"&gt;(A = NULL)&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+&lt;/div&gt;
 
 --
 
-**The fifth pattern:** anti-join — "rows in A that have NO match in B". There's no `ANTI JOIN` keyword. You do it with `LEFT JOIN ... WHERE B.id IS NULL` or `NOT EXISTS`.
+&lt;div style="margin-top:18px;"&gt;
+  &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;b&gt;The fifth pattern:&lt;/b&gt; &lt;code&gt;anti-join&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;rows in A with NO match in B. No keyword: &lt;code&gt;LEFT JOIN ... WHERE b.id IS NULL&lt;/code&gt; or &lt;code&gt;NOT EXISTS&lt;/code&gt;&lt;/span&gt;&lt;/div&gt;
+  &lt;div style="display:flex; height:42px; font-size:14px; text-align:center; width:46%;"&gt;
+    &lt;div style="flex:1; border:1.5px solid #1f78b4; background:#cfe3f2; line-height:39px;"&gt;only in A&lt;/div&gt;
+    &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;match&lt;/div&gt;
+    &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in B&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
 
 ---
 
