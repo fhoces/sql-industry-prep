@@ -61,65 +61,51 @@ class: center, middle, inverse, title-slide
 
 ---
 
-# The Four Flavors
+# The Four Flavors: INNER JOIN
 
-&lt;div style="display:flex; align-items:center; gap:16px; font-size:14px; margin:4px 0 16px 0; color:#333;"&gt;
-  &lt;span&gt;&lt;span style="display:inline-block;width:12px;height:12px;background:#cfe3f2;border:1.5px solid #1f78b4;vertical-align:-1px;"&gt;&lt;/span&gt; rows only in &lt;b&gt;A&lt;/b&gt; (left table)&lt;/span&gt;
-  &lt;span&gt;&lt;span style="display:inline-block;width:12px;height:12px;background:linear-gradient(90deg,#cfe3f2,#ffe0bf);border:1.5px solid #888;vertical-align:-1px;"&gt;&lt;/span&gt; key match in &lt;b&gt;both&lt;/b&gt;&lt;/span&gt;
-  &lt;span&gt;&lt;span style="display:inline-block;width:12px;height:12px;background:#ffe0bf;border:1.5px solid #ff7f00;vertical-align:-1px;"&gt;&lt;/span&gt; rows only in &lt;b&gt;B&lt;/b&gt; (right table)&lt;/span&gt;
-  &lt;span style="color:#999;"&gt;dashed = not returned&lt;/span&gt;
-&lt;/div&gt;
+**Only the rows with a key match in both tables.** In the animation, `x` is the left table (A), `y` the right table (B); dplyr's `inner_join(x, y)` is SQL's `JOIN y ON ...`.
 
-&lt;div style="display:flex; flex-wrap:wrap; gap:18px 26px;"&gt;
+&lt;p style="text-align:center; margin:4px 0 0 0;"&gt;&lt;img src="figs/inner-join.gif" style="height:400px;"&gt;&lt;/p&gt;
+&lt;div style="font-size:10px; color:#aaa; text-align:right; margin-top:2px;"&gt;Animation: Garrick Aden-Buie, &lt;a href="https://github.com/gadenbuie/tidyexplain" style="color:#aaa;"&gt;tidyexplain&lt;/a&gt; (CC BY 4.0)&lt;/div&gt;
 
-  &lt;div style="flex:0 0 46%;"&gt;
-    &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;code&gt;INNER JOIN&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;only the matched rows&lt;/span&gt;&lt;/div&gt;
-    &lt;div style="display:flex; height:42px; font-size:14px; text-align:center;"&gt;
-      &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in A&lt;/div&gt;
-      &lt;div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;"&gt;match&lt;/div&gt;
-      &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in B&lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
+---
+count: false
 
-  &lt;div style="flex:0 0 46%;"&gt;
-    &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;code&gt;LEFT JOIN&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;all of A; B's columns NULL where unmatched&lt;/span&gt;&lt;/div&gt;
-    &lt;div style="display:flex; height:42px; font-size:14px; text-align:center;"&gt;
-      &lt;div style="flex:1; border:1.5px solid #1f78b4; background:#cfe3f2; line-height:39px;"&gt;only in A &lt;span style="color:#666;"&gt;(B = NULL)&lt;/span&gt;&lt;/div&gt;
-      &lt;div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;"&gt;match&lt;/div&gt;
-      &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in B&lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
+# The Four Flavors: LEFT JOIN
 
-  &lt;div style="flex:0 0 46%;"&gt;
-    &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;code&gt;RIGHT JOIN&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;mirror image; rarely used: flip and use LEFT&lt;/span&gt;&lt;/div&gt;
-    &lt;div style="display:flex; height:42px; font-size:14px; text-align:center;"&gt;
-      &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in A&lt;/div&gt;
-      &lt;div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;"&gt;match&lt;/div&gt;
-      &lt;div style="flex:1; border:1.5px solid #ff7f00; background:#ffe0bf; line-height:39px;"&gt;only in B &lt;span style="color:#666;"&gt;(A = NULL)&lt;/span&gt;&lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
+**All of `x`; `y`'s columns come back NULL where unmatched.** The workhorse: it never drops rows from the table you care about.
 
-  &lt;div style="flex:0 0 46%;"&gt;
-    &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;code&gt;FULL OUTER JOIN&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;everything; NULLs on whichever side is missing&lt;/span&gt;&lt;/div&gt;
-    &lt;div style="display:flex; height:42px; font-size:14px; text-align:center;"&gt;
-      &lt;div style="flex:1; border:1.5px solid #1f78b4; background:#cfe3f2; line-height:39px;"&gt;only in A &lt;span style="color:#666;"&gt;(B = NULL)&lt;/span&gt;&lt;/div&gt;
-      &lt;div style="flex:1; border:1.5px solid #888; background:linear-gradient(90deg,#cfe3f2,#ffe0bf); line-height:39px;"&gt;match&lt;/div&gt;
-      &lt;div style="flex:1; border:1.5px solid #ff7f00; background:#ffe0bf; line-height:39px;"&gt;only in B &lt;span style="color:#666;"&gt;(A = NULL)&lt;/span&gt;&lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
+&lt;p style="text-align:center; margin:4px 0 0 0;"&gt;&lt;img src="figs/left-join.gif" style="height:400px;"&gt;&lt;/p&gt;
+&lt;div style="font-size:10px; color:#aaa; text-align:right; margin-top:2px;"&gt;Animation: Garrick Aden-Buie, &lt;a href="https://github.com/gadenbuie/tidyexplain" style="color:#aaa;"&gt;tidyexplain&lt;/a&gt; (CC BY 4.0)&lt;/div&gt;
 
-&lt;/div&gt;
+---
+count: false
 
---
+# The Four Flavors: RIGHT JOIN
 
-&lt;div style="margin-top:18px;"&gt;
-  &lt;div style="font-size:16px; margin-bottom:4px;"&gt;&lt;b&gt;The fifth pattern:&lt;/b&gt; &lt;code&gt;anti-join&lt;/code&gt; &lt;span style="font-size:13.5px;color:#777;"&gt;rows in A with NO match in B. No keyword: &lt;code&gt;LEFT JOIN ... WHERE b.id IS NULL&lt;/code&gt; or &lt;code&gt;NOT EXISTS&lt;/code&gt;&lt;/span&gt;&lt;/div&gt;
-  &lt;div style="display:flex; height:42px; font-size:14px; text-align:center; width:46%;"&gt;
-    &lt;div style="flex:1; border:1.5px solid #1f78b4; background:#cfe3f2; line-height:39px;"&gt;only in A&lt;/div&gt;
-    &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;match&lt;/div&gt;
-    &lt;div style="flex:1; border:1.5px dashed #bbb; color:#bbb; line-height:39px;"&gt;only in B&lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
+**Mirror image of LEFT.** Rarely used in practice: swap the table order and write it as a LEFT JOIN instead.
+
+&lt;p style="text-align:center; margin:4px 0 0 0;"&gt;&lt;img src="figs/right-join.gif" style="height:400px;"&gt;&lt;/p&gt;
+&lt;div style="font-size:10px; color:#aaa; text-align:right; margin-top:2px;"&gt;Animation: Garrick Aden-Buie, &lt;a href="https://github.com/gadenbuie/tidyexplain" style="color:#aaa;"&gt;tidyexplain&lt;/a&gt; (CC BY 4.0)&lt;/div&gt;
+
+---
+count: false
+
+# The Four Flavors: FULL OUTER JOIN
+
+**Everything from both sides; NULLs on whichever side is missing.** (Supported in SQLite since 3.39.)
+
+&lt;p style="text-align:center; margin:4px 0 0 0;"&gt;&lt;img src="figs/full-join.gif" style="height:400px;"&gt;&lt;/p&gt;
+&lt;div style="font-size:10px; color:#aaa; text-align:right; margin-top:2px;"&gt;Animation: Garrick Aden-Buie, &lt;a href="https://github.com/gadenbuie/tidyexplain" style="color:#aaa;"&gt;tidyexplain&lt;/a&gt; (CC BY 4.0)&lt;/div&gt;
+
+---
+
+# The Four Flavors: the fifth pattern, Anti-Join
+
+**Rows in `x` with NO match in `y`.** There's no `ANTI JOIN` keyword: write `LEFT JOIN ... WHERE y.id IS NULL` or `NOT EXISTS`.
+
+&lt;p style="text-align:center; margin:4px 0 0 0;"&gt;&lt;img src="figs/anti-join.gif" style="height:400px;"&gt;&lt;/p&gt;
+&lt;div style="font-size:10px; color:#aaa; text-align:right; margin-top:2px;"&gt;Animation: Garrick Aden-Buie, &lt;a href="https://github.com/gadenbuie/tidyexplain" style="color:#aaa;"&gt;tidyexplain&lt;/a&gt; (CC BY 4.0)&lt;/div&gt;
 
 ---
 
