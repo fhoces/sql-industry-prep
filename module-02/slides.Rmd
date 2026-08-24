@@ -405,6 +405,200 @@ LIMIT 5;
 ]
 
 ---
+name: q4-unaccepted-city
+
+# Q4. What share of requests go unaccepted, in each city?
+
+*Hint: start `FROM requests`, not `FROM rides` — the unaccepted requests are
+exactly the ones with no ride, so starting from `rides` would drop the rows
+you're studying. Then LEFT JOIN and count the NULLs.*
+
+.small[
+**1. Direction of the LEFT JOIN.** `requests` is the left (keep-everything)
+side; a request with no matching ride comes back with `r.ride_id` as NULL —
+and those NULLs *are* the unaccepted requests.
+```sql
+FROM requests req
+LEFT JOIN rides r ON req.request_id = r.request_id
+```
+]
+
+--
+
+.small[
+**2. Chain up to `cities`.** These two can stay INNER — every request has a
+pickup neighborhood, so nothing gets dropped.
+```sql
+JOIN neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+JOIN cities c        ON n.city_id = c.city_id
+```
+]
+
+--
+
+.small[
+**3. Count the NULLs per city.** `CASE WHEN ... IS NULL` inside `SUM()`, and
+`1.0 *` to dodge integer division (Module 1's Q2 trick).
+```sql
+SUM(CASE WHEN r.ride_id IS NULL THEN 1 ELSE 0 END) AS n_unaccepted
+```
+]
+
+---
+count: false
+
+# Q4. What share of requests go unaccepted, in each city? (cont.)
+
+.small[
+```{sql q-unaccepted-city, eval=TRUE}
+SELECT c.name AS city,
+       COUNT(*) AS n_requests,
+       SUM(CASE WHEN r.ride_id IS NULL THEN 1 ELSE 0 END) AS n_unaccepted,
+       ROUND(1.0 * SUM(CASE WHEN r.ride_id IS NULL THEN 1 ELSE 0 END)
+               / COUNT(*), 3) AS pct_unaccepted
+FROM   requests req
+LEFT JOIN rides r      ON req.request_id = r.request_id
+JOIN   neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+JOIN   cities c        ON n.city_id = c.city_id
+GROUP BY c.name
+ORDER BY pct_unaccepted DESC;
+```
+
+**Sanity check:** `requests` also carries an `accepted` flag, and
+`SUM(1 - accepted)` gives the same 11,000 total. The join-based version is
+the one to know — most schemas don't hand you the flag.
+]
+
+---
+name: q5-never-minority
+
+# Q5. Which drivers have *never* picked up from a majority-minority neighborhood?
+
+*Hint: "never did X" is an anti-join. Build the set of drivers who* did
+*(pct_minority ≥ 0.8), then keep the drivers outside it.*
+
+.small[
+**1. Build the "drivers who HAVE" set.** A subquery chaining
+`rides → requests → neighborhoods`; `DISTINCT` because one driver shows up
+once per qualifying ride.
+```sql
+SELECT DISTINCT r.driver_id
+FROM   rides r
+JOIN   requests req    ON r.request_id = req.request_id
+JOIN   neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+WHERE  n.pct_minority >= 0.8
+```
+]
+
+--
+
+.small[
+**2. Anti-join `drivers` against it.** LEFT JOIN keeps every driver; the ones
+with no match come back NULL — and those are the "never" drivers.
+```sql
+FROM drivers d
+LEFT JOIN ( ...subquery... ) hm ON d.driver_id = hm.driver_id
+WHERE hm.driver_id IS NULL
+```
+Same result via `NOT IN (subquery)` — that's the form on the sample-code
+slide — or `NOT EXISTS`. All three are interview-acceptable.
+]
+
+---
+count: false
+
+# Q5. Which drivers have *never* picked up from a majority-minority neighborhood? (cont.)
+
+.small[
+```{sql q-never-minority, eval=TRUE}
+SELECT d.driver_id, d.gender, d.signup_date
+FROM   drivers d
+LEFT JOIN (
+  SELECT DISTINCT r.driver_id
+  FROM   rides r
+  JOIN   requests req    ON r.request_id = req.request_id
+  JOIN   neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+  WHERE  n.pct_minority >= 0.8
+) hm ON d.driver_id = hm.driver_id
+WHERE  hm.driver_id IS NULL
+ORDER BY d.driver_id
+-- LIMIT is display-only: the full result has 83 of the 800 drivers
+LIMIT 5;
+```
+
+**Watch the threshold:** at `>= 0.5` the answer is empty (every driver has at
+least one such pickup). An empty result isn't always a bug — say so out loud
+in an interview, then check the filter's distribution.
+]
+
+---
+name: q6-prev-ride-gap
+
+# Q6. For each ride, how many hours since the driver's previous ride ended?
+
+*Hint: this extends the [self-join slide](#self-join) — same
+`r1`/`r2` aliases, same time inequality in `ON`, plus a `julianday()`
+difference at the end.*
+
+.small[
+**1. Self-join with an inequality.** `r2` ranges over the *earlier* rides by
+the same driver. LEFT JOIN, so each driver's first ride survives (with NULL).
+```sql
+FROM rides r1
+LEFT JOIN rides r2
+  ON  r1.driver_id  = r2.driver_id
+  AND r2.started_at < r1.started_at
+```
+]
+
+--
+
+.small[
+**2. Keep only the most recent earlier ride.** Each `r1` row matched *all*
+earlier rides; `GROUP BY r1.ride_id` + `MAX(r2.ended_at)` collapses that to
+the latest one.
+```sql
+GROUP BY r1.ride_id
+... MAX(r2.ended_at) AS prev_ride_ended
+```
+]
+
+--
+
+.small[
+**3. Convert to hours.** `julianday()` returns fractional days, so the
+difference `* 24` is hours.
+```sql
+ROUND((julianday(r1.started_at) - julianday(MAX(r2.ended_at))) * 24, 1)
+```
+]
+
+---
+count: false
+
+# Q6. For each ride, how many hours since the driver's previous ride ended? (cont.)
+
+.small[
+```{sql q-prev-ride-gap, eval=TRUE}
+SELECT r1.ride_id, r1.driver_id, r1.started_at,
+       MAX(r2.ended_at) AS prev_ride_ended,
+       ROUND((julianday(r1.started_at) - julianday(MAX(r2.ended_at))) * 24, 1)
+         AS hours_since_prev
+FROM   rides r1
+LEFT JOIN rides r2
+  ON   r1.driver_id  = r2.driver_id
+  AND  r2.started_at < r1.started_at
+GROUP BY r1.ride_id
+LIMIT 5;
+```
+
+**In Module 5** the same question is one expression:
+`LAG(ended_at) OVER (PARTITION BY driver_id ORDER BY started_at)` — cheaper
+and clearer. The self-join is the pre-window-function pattern; it still gets
+asked.
+]
+
+---
 class: inverse
 
 # The Key Takeaways

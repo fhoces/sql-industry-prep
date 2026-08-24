@@ -19,8 +19,9 @@ LIMIT 10;
 
 
 -- -----------------------------------------------------------------------------
--- Q2. Drivers who NEVER accepted a request from a high-minority neighborhood
---     (pct_minority >= 0.5)
+-- Q2. Drivers who NEVER accepted a request from a majority-minority
+--     neighborhood (pct_minority >= 0.8; at 0.5 the result is empty --
+--     every driver has at least one such pickup)
 -- -----------------------------------------------------------------------------
 SELECT d.driver_id, d.gender
 FROM   drivers d
@@ -30,7 +31,7 @@ WHERE  NOT EXISTS (
   JOIN   requests req ON r.request_id = req.request_id
   JOIN   neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
   WHERE  r.driver_id = d.driver_id
-    AND  n.pct_minority >= 0.5
+    AND  n.pct_minority >= 0.8
 )
 LIMIT 10;
 
@@ -86,4 +87,36 @@ SELECT req.request_id, req.rider_id, req.requested_at
 FROM   requests req
 LEFT JOIN rides r ON req.request_id = r.request_id
 WHERE  r.ride_id IS NULL
+LIMIT 10;
+
+
+-- -----------------------------------------------------------------------------
+-- Q7. Share of unaccepted requests per city (LEFT JOIN + NULL counting)
+-- -----------------------------------------------------------------------------
+SELECT c.name AS city,
+       COUNT(*) AS n_requests,
+       SUM(CASE WHEN r.ride_id IS NULL THEN 1 ELSE 0 END) AS n_unaccepted,
+       ROUND(1.0 * SUM(CASE WHEN r.ride_id IS NULL THEN 1 ELSE 0 END)
+               / COUNT(*), 3) AS pct_unaccepted
+FROM   requests req
+LEFT JOIN rides r      ON req.request_id = r.request_id
+JOIN   neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+JOIN   cities c        ON n.city_id = c.city_id
+GROUP BY c.name
+ORDER BY pct_unaccepted DESC;
+
+
+-- -----------------------------------------------------------------------------
+-- Q8. Self-join: hours since the driver's previous ride ended
+--     (window-function version in Module 5: LAG(ended_at) OVER (...))
+-- -----------------------------------------------------------------------------
+SELECT r1.ride_id, r1.driver_id, r1.started_at,
+       MAX(r2.ended_at) AS prev_ride_ended,
+       ROUND((julianday(r1.started_at) - julianday(MAX(r2.ended_at))) * 24, 1)
+         AS hours_since_prev
+FROM   rides r1
+LEFT JOIN rides r2
+  ON   r1.driver_id  = r2.driver_id
+  AND  r2.started_at < r1.started_at
+GROUP BY r1.ride_id
 LIMIT 10;
