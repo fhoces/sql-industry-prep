@@ -340,6 +340,8 @@ name: q1-fare-by-hour
 
 # Q1. What is the average fare by hour of day?
 
+--
+
 <a class="write-ref" href="../module-03/slides.html#write-order">WO</a>
 *Hint: you need `strftime('%H', ...)` to extract the hour, `AVG()`, and `GROUP BY`.*
 
@@ -361,6 +363,8 @@ LIMIT 6;
 name: q2-conversion-rate
 
 # Q2. What is the monthly conversion rate (requests → accepted)?
+
+--
 
 <a class="write-ref" href="../module-03/slides.html#write-order">WO</a>
 _Hint: you need `SUM(accepted) / COUNT(*)` and watch out for integer division._
@@ -385,6 +389,8 @@ name: q3-surge-rate
 
 # Q3. How often does surge pricing kick in, and what's the average multiplier?
 
+--
+
 <a class="write-ref" href="../module-03/slides.html#write-order">WO</a>
 *Hint: use the `CASE WHEN ... THEN 1 ELSE 0 END` trick inside `SUM()` and `AVG()`.*
 
@@ -405,9 +411,13 @@ name: q4-city-surge
 
 # Q4. Average fare by city, for surged rides only?
 
+--
+
 *Hint: `rides` has no `city_id` — chase foreign keys: `rides → requests →
 neighborhoods → cities`. Filters on `surge_mult` are row-level, so `WHERE`
 (this previews the JOIN pattern from Module 2).*
+
+--
 
 .small[
 **1. Which tables?** `fare_usd`/`surge_mult` are in `rides`; city needs a chain.
@@ -463,8 +473,12 @@ name: q5-nbhd-revenue
 
 # Q5. Top 3 pickup neighborhoods by total fare revenue?
 
+--
+
 *Hint: only count neighborhoods with at least 50 rides. That's a group-level
 condition (depends on `COUNT(*)`), so it's `HAVING`, not `WHERE`.*
+
+--
 
 .small[
 **1. Which tables?** `fare_usd` is in `rides`; neighborhood name is in `neighborhoods`.
@@ -524,9 +538,13 @@ name: q6-day-of-week
 
 # Q6. Rides and avg fare by day of week, Mon-Sun order?
 
+--
+
 *Hint: `strftime('%w', started_at)` returns `'0'`-`'6'` where `'0'` = Sunday.
 Label with `CASE`, and don't sort alphabetically — build a second `CASE` as
 a sort key.*
+
+--
 
 .small[
 **1. Label the day.** `CASE <expr> WHEN <value> THEN ... END` — no commas
