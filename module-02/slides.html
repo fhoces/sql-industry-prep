@@ -483,6 +483,7 @@ class: inverse, center, middle
 
 --
 
+.small[
 
 ```sql
 SELECT req.rider_id,
@@ -492,21 +493,25 @@ FROM   rides r
 JOIN   requests req ON r.request_id = req.request_id
 GROUP BY req.rider_id
 ORDER BY n_unique_drivers DESC
-LIMIT 5;
+-- LIMIT is display-only
+LIMIT 3;
 ```
 
 
 
 
-Table: 5 records
+Table: 3 records
 
 | rider_id| n_unique_drivers| n_rides|
 |--------:|----------------:|-------:|
 |     2340|               23|      23|
 |     1163|               21|      21|
 |      854|               21|      21|
-|      458|               21|      21|
-|     3085|               20|      20|
+]
+
+.small[
+**What does this inner join drop?** The 11,000 unaccepted requests (50,000 requests, 39,000 rides): they have no row in `rides`, so they never enter the result. That's correct here, since "ridden with" is about rides that happened. The only assumption the join makes is that every *ride* has a request, true by construction. When the unaccepted requests are the ones you care about, flip the base table: `FROM requests LEFT JOIN rides` (Q4).
+]
 
 ---
 
