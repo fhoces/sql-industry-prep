@@ -51,7 +51,7 @@ LIMIT 10;
 
 
 -- -----------------------------------------------------------------------------
--- Q4. Rider-driver pairs with 3+ five-star ratings together
+-- Q4. Rider-driver pairs with 2+ five-star ratings together
 -- -----------------------------------------------------------------------------
 SELECT req.rider_id,
        r.driver_id,
@@ -60,7 +60,7 @@ FROM   rides r
 JOIN   requests req ON r.request_id = req.request_id
 WHERE  r.rider_rating = 5
 GROUP BY req.rider_id, r.driver_id
-HAVING COUNT(*) >= 3
+HAVING COUNT(*) >= 2
 ORDER BY n_5star DESC
 LIMIT 15;
 

@@ -298,7 +298,7 @@ Table: 1 records
 
 # Pattern: Group By + Having
 
-**Drivers with at least 100 rides in 2025**:
+**Drivers with at least 50 rides in 2025**:
 
 
 ```sql
@@ -306,7 +306,7 @@ SELECT driver_id, COUNT(*) AS n_rides
 FROM   rides
 WHERE  date(started_at) BETWEEN '2025-01-01' AND '2025-12-31'
 GROUP BY driver_id
-HAVING COUNT(*) &gt;= 100
+HAVING COUNT(*) &gt;= 50
 ORDER BY n_rides DESC
 LIMIT 5;
 ```
@@ -314,10 +314,15 @@ LIMIT 5;
 
 
 
-Table: 0 records
+Table: 5 records
 
-| driver_id|n_rides |
-|---------:|:-------|
+| driver_id| n_rides|
+|---------:|-------:|
+|       188|      73|
+|       333|      69|
+|       626|      66|
+|       239|      66|
+|       353|      65|
 
 --
 

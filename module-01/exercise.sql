@@ -29,13 +29,13 @@ ORDER BY hour;
 
 
 -- -----------------------------------------------------------------------------
--- Q3. Drivers with at least 100 completed rides in 2025
+-- Q3. Drivers with at least 50 completed rides in 2025
 -- -----------------------------------------------------------------------------
 SELECT driver_id, COUNT(*) AS n_rides
 FROM   rides
 WHERE  date(started_at) BETWEEN '2025-01-01' AND '2025-12-31'
 GROUP BY driver_id
-HAVING COUNT(*) >= 100
+HAVING COUNT(*) >= 50
 ORDER BY n_rides DESC
 LIMIT 20;
 

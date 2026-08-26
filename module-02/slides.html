@@ -303,22 +303,22 @@ This is the key difference from INNER JOIN: unmatched left-side rows stay in the
 
 # Anti-Join: "Who has NO match?"
 
-**The question:** which drivers have never completed a ride?
+**The question:** which requests never became a ride?
 
-In dplyr: `anti_join(drivers, rides, by = "driver_id")` — one line, done.
+In dplyr: `anti_join(requests, rides, by = "request_id")` (one line, done).
 
 --
 
 SQL has **no `ANTI JOIN` keyword**. You fake it in two steps:
 
-1. **LEFT JOIN** — keep all drivers; NULLs where no ride exists
-2. **Filter for NULLs** — keep only the unmatched ones
+1. **LEFT JOIN**: keep all requests; NULLs where no ride exists
+2. **Filter for NULLs**: keep only the unmatched ones
 
 
 ```sql
-SELECT d.driver_id, d.gender
-FROM   drivers d
-LEFT JOIN rides r ON d.driver_id = r.driver_id
+SELECT req.request_id, req.rider_id, req.requested_at
+FROM   requests req
+LEFT JOIN rides r ON req.request_id = r.request_id
 WHERE  r.ride_id IS NULL
 LIMIT 5;
 ```
@@ -326,14 +326,19 @@ LIMIT 5;
 
 
 
-Table: 0 records
+Table: 5 records
 
-| driver_id|gender |
-|---------:|:------|
+| request_id| rider_id|requested_at        |
+|----------:|--------:|:-------------------|
+|          6|     2790|2025-01-20 19:40:00 |
+|          7|     2958|2025-06-29 02:40:00 |
+|          8|      412|2025-07-01 03:15:00 |
+|         15|     3891|2025-05-29 00:40:00 |
+|         21|     2739|2025-01-01 07:10:00 |
 
 --
 
-The `WHERE r.ride_id IS NULL` keeps only drivers whose LEFT JOIN produced no match — i.e., drivers with zero rides. That's the anti-join.
+The `WHERE r.ride_id IS NULL` keeps only requests whose LEFT JOIN produced no match, i.e. requests no driver accepted. That's the anti-join.
 
 ---
 name: self-join
@@ -549,12 +554,12 @@ Table: 5 records
 
 ---
 
-# Q3. Which rider-driver pairs have had 3 or more 5-star rides together?
+# Q3. Which rider-driver pairs have had 2 or more 5-star rides together?
 
 --
 
 &lt;a class="write-ref" href="../module-03/slides.html#write-order"&gt;WO&lt;/a&gt;
-*Hint: JOIN `rides` to `requests`, filter for `rider_rating = 5`, GROUP BY the pair, HAVING &gt;= 3.*
+*Hint: JOIN `rides` to `requests`, filter for `rider_rating = 5`, GROUP BY the pair, HAVING &gt;= 2.*
 
 --
 
@@ -565,7 +570,7 @@ FROM   rides r
 JOIN   requests req ON r.request_id = req.request_id
 WHERE  r.rider_rating = 5
 GROUP BY req.rider_id, r.driver_id
-HAVING COUNT(*) &gt;= 3
+HAVING COUNT(*) &gt;= 2
 ORDER BY n_5star DESC
 LIMIT 5;
 ```
@@ -573,13 +578,18 @@ LIMIT 5;
 
 
 
-Table: 0 records
+Table: 5 records
 
-| rider_id| driver_id|n_5star |
-|--------:|---------:|:-------|
+| rider_id| driver_id| n_5star|
+|--------:|---------:|-------:|
+|       20|       768|       2|
+|       73|       134|       2|
+|      111|        63|       2|
+|      171|       147|       2|
+|      197|       223|       2|
 
 .small[
-**Why `HAVING COUNT(*) &gt;= 3` instead of `HAVING n_5star &gt;= 3`?** Because `n_5star` is a column alias defined in SELECT, and HAVING runs *before* SELECT. You have to repeat the expression. (SQLite/MySQL are lenient about this; PostgreSQL is not — use the safe version.)
+**Why `HAVING COUNT(*) &gt;= 2` instead of `HAVING n_5star &gt;= 2`?** Because `n_5star` is a column alias defined in SELECT, and HAVING runs *before* SELECT. You have to repeat the expression. (SQLite/MySQL are lenient about this; PostgreSQL is not — use the safe version.)
 ]
 
 ---
