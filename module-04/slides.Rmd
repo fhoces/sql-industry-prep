@@ -70,6 +70,7 @@ Once a query gets past ~5 lines, you need a way to organize intermediate results
 The database engine converts both into the same internal strategy (called an "execution plan") — so **performance is the same**. Choose between them for readability, not speed. **Default to CTEs.**
 
 ---
+name: subquery-flavors
 
 # Three Subquery Flavors
 
@@ -107,6 +108,7 @@ Reading inside-out:
 In R: `rides |> count(driver_id) |> filter(n > 100)`. SQL can't chain like that, so you nest instead.
 
 ---
+name: correlated-subquery
 
 # Subquery Flavor 3: Correlated Subquery
 

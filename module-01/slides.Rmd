@@ -415,7 +415,7 @@ name: q4-city-surge
 
 *Hint: `rides` has no `city_id` — chase foreign keys: `rides → requests →
 neighborhoods → cities`. Filters on `surge_mult` are row-level, so `WHERE`
-(this previews the JOIN pattern from Module 2).*
+(this previews the [multi-table JOIN pattern from Module 2](../module-02/slides.html#multi-chain)).*
 
 --
 
@@ -476,7 +476,8 @@ name: q5-nbhd-revenue
 --
 
 *Hint: only count neighborhoods with at least 50 rides. That's a group-level
-condition (depends on `COUNT(*)`), so it's `HAVING`, not `WHERE`.*
+condition (it depends on each group's row count), so it's `HAVING`, not
+`WHERE`. The join chain previews the [multi-table pattern from Module 2](../module-02/slides.html#multi-chain).*
 
 --
 

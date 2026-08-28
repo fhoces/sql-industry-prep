@@ -147,6 +147,7 @@ LIMIT 5;
 **Use `ROW_NUMBER`** if you want exactly one row per group (ties broken arbitrarily). **Use `RANK` or `DENSE_RANK`** if you want all tied rows.
 
 ---
+name: lag-prev-ride
 
 # Q: For each ride, how many hours since the driver's previous ride?
 

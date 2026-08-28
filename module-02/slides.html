@@ -395,7 +395,7 @@ count: false
 
 # Self-Join: the cost, and the efficient alternative
 
-The self-join builds every (ride, earlier ride) pair before `GROUP BY` collapses them: 39,000 rides become **952,199 intermediate rows**. The window-function version (Module 5) sorts each driver's rides once and hands every row its predecessor directly:
+The self-join builds every (ride, earlier ride) pair before `GROUP BY` collapses them: 39,000 rides become **952,199 intermediate rows**. The window-function version ([Module 5](../module-05/slides.html#lag-prev-ride)) sorts each driver's rides once and hands every row its predecessor directly:
 
 .small[
 
@@ -430,7 +430,7 @@ Timed on this database, all strategies returning identical results:
 | Strategy | Time |
 |---|---|
 | Self-join + `GROUP BY` | 0.29 s |
-| Correlated subquery (Module 4), no index | 89.5 s |
+| [Correlated subquery (Module 4)](../module-04/slides.html#correlated-subquery), no index | 89.5 s |
 | Correlated subquery + index on `(driver_id, started_at)` | 0.09 s |
 | `LAG() OVER (...)` | **0.03 s** |
 
@@ -757,7 +757,7 @@ LEFT JOIN ( ...subquery... ) hm ON d.driver_id = hm.driver_id
 WHERE hm.driver_id IS NULL
 ```
 Same result via `NOT IN (subquery)` — that's the form on the sample-code
-slide — or `NOT EXISTS`. All three are interview-acceptable.
+slide — or `NOT EXISTS` (subqueries are [Module 4 material](../module-04/slides.html#subquery-flavors)). All three are interview-acceptable.
 ]
 
 ---
@@ -880,7 +880,7 @@ Table: 5 records
 |4       |       101|2025-08-05 08:03:57.718588 |2025-07-25 12:32:32.615263 |            259.5|
 |5       |        85|2025-06-13 13:28:00.10871  |2025-06-13 02:03:49.688599 |             11.4|
 
-**In Module 5** the same question is one expression:
+**In [Module 5](../module-05/slides.html#lag-prev-ride)** the same question is one expression:
 `LAG(ended_at) OVER (PARTITION BY driver_id ORDER BY started_at)` — cheaper
 and clearer. The self-join is the pre-window-function pattern; it still gets
 asked.
