@@ -407,6 +407,130 @@ GROUP BY city HAVING COUNT(*) > 1000;
 ```
 
 ---
+class: inverse, center, middle
+
+# Interview Questions
+### <a href="../module-01/slides.html#schema">Schema reference</a>
+
+---
+name: q1-hourly-accept
+
+# Q1. How does the acceptance rate vary by hour of day?
+
+--
+
+*Hint: no join needed. `accepted` is a 0/1 flag, so its average per group IS
+the rate (the same trick as M2's Q4).*
+
+--
+
+```{sql q-hourly-accept, eval=TRUE}
+SELECT strftime('%H', requested_at) AS hour,
+       COUNT(*)                     AS n_requests,
+       ROUND(AVG(accepted), 3)      AS accept_rate
+FROM   requests
+GROUP BY hour
+ORDER BY accept_rate DESC
+-- LIMIT is display-only: the full result has 24 rows
+LIMIT 5;
+```
+
+---
+name: q2-city-funnel
+
+# Q2. Build the request → ride → 5-star funnel, per city.
+
+--
+
+*Hint: P3's funnel is one row for the whole platform. Add the join chain to
+`cities` and a `GROUP BY` to break it out. Keep the LEFT JOIN, or unaccepted
+requests vanish from step 1 and every rate is wrong.*
+
+--
+
+.small[
+```{sql q-city-funnel, eval=TRUE}
+SELECT c.name AS city,
+       COUNT(*)                                               AS requests,
+       SUM(CASE WHEN r.ride_id IS NOT NULL THEN 1 ELSE 0 END) AS rides,
+       SUM(CASE WHEN r.rider_rating = 5 THEN 1 ELSE 0 END)    AS five_star,
+       ROUND(1.0 * SUM(CASE WHEN r.rider_rating = 5 THEN 1 ELSE 0 END)
+               / COUNT(*), 3)                                 AS req_to_5star
+FROM   requests req
+LEFT JOIN rides r      ON req.request_id = r.request_id
+JOIN   neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+JOIN   cities c        ON n.city_id = c.city_id
+GROUP BY c.name
+ORDER BY req_to_5star DESC;
+```
+]
+
+---
+name: q3-above-avg
+
+# Q3. Which drivers rate above the average driver in their city?
+
+--
+
+*Hint: two layers. First compute each driver's average rating per city; then
+keep the rows beating their own city's average. "Their own" makes the
+comparison [correlated (Module 4)](../module-04/slides.html#correlated-subquery).*
+
+--
+
+.small[
+**1. Per-driver, per-city averages** — a [CTE (Module 4 material)](../module-04/slides.html#subquery-flavors), used early because naming the layer keeps step 2 readable.
+```sql
+WITH driver_city_ratings AS (
+  SELECT r.driver_id, n.city_id, AVG(r.rider_rating) AS avg_rating
+  FROM rides r
+  JOIN requests req    ON r.request_id = req.request_id
+  JOIN neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+  WHERE r.rider_rating IS NOT NULL
+  GROUP BY r.driver_id, n.city_id
+)
+```
+]
+
+--
+
+.small[
+**2. Compare each row to its own city's average.** The subquery re-runs per
+outer row because it references `dcr.city_id` — that's what "correlated" means.
+```sql
+WHERE dcr.avg_rating > (SELECT AVG(avg_rating)
+                        FROM driver_city_ratings dcr2
+                        WHERE dcr2.city_id = dcr.city_id)
+```
+]
+
+---
+count: false
+
+# Q3. Which drivers rate above the average driver in their city? (cont.)
+
+.small[
+```{sql q-above-avg, eval=TRUE}
+WITH driver_city_ratings AS (
+  SELECT r.driver_id, n.city_id, AVG(r.rider_rating) AS avg_rating
+  FROM rides r
+  JOIN requests req    ON r.request_id = req.request_id
+  JOIN neighborhoods n ON req.pickup_nbhd_id = n.nbhd_id
+  WHERE r.rider_rating IS NOT NULL
+  GROUP BY r.driver_id, n.city_id
+)
+SELECT dcr.driver_id, dcr.city_id, ROUND(dcr.avg_rating, 2) AS avg_rating
+FROM   driver_city_ratings dcr
+WHERE  dcr.avg_rating > (SELECT AVG(avg_rating)
+                         FROM driver_city_ratings dcr2
+                         WHERE dcr2.city_id = dcr.city_id)
+ORDER BY dcr.avg_rating DESC
+-- LIMIT is display-only: the full result has 2,107 driver-city pairs
+LIMIT 4;
+```
+]
+
+---
 class: inverse
 
 # The Key Takeaways
