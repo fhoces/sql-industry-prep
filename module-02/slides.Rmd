@@ -287,7 +287,41 @@ The two `ON` conditions narrow `r2` to *eligible* matches:
 
 Then `MAX(r2.started_at)` after `GROUP BY r1.ride_id` picks the **most recent** of those earlier rides — the immediate predecessor. A driver's *first* ride has no eligible `r2`, so `previous_ride` is `NULL` (LEFT JOIN preserves it).
 
-**Window-function alternative** (Module 5): `LAG(started_at) OVER (PARTITION BY driver_id ORDER BY started_at)` does the same thing in one expression — cheaper and clearer. Self-join is the *pre*-window-function pattern; it still shows up in interviews because not every dialect/version has window functions.
+---
+count: false
+
+# Self-Join: the cost, and the efficient alternative
+
+The self-join builds every (ride, earlier ride) pair before `GROUP BY` collapses them: 39,000 rides become **952,199 intermediate rows**. The window-function version (Module 5) sorts each driver's rides once and hands every row its predecessor directly:
+
+.small[
+```{sql self-join-lag, eval=TRUE}
+SELECT ride_id, driver_id, started_at,
+       LAG(ended_at) OVER (PARTITION BY driver_id ORDER BY started_at)
+         AS prev_ride_ended
+FROM rides
+LIMIT 3;
+```
+]
+
+---
+count: false
+
+# Self-Join: what each strategy costs
+
+.small[
+Timed on this database, all strategies returning identical results:
+
+| Strategy | Time |
+|---|---|
+| Self-join + `GROUP BY` | 0.29 s |
+| Correlated subquery (Module 4), no index | 89.5 s |
+| Correlated subquery + index on `(driver_id, started_at)` | 0.09 s |
+| `LAG() OVER (...)` | **0.03 s** |
+
+]
+
+**Interview move:** write the self-join, then volunteer the fix: "this builds a quadratic intermediate per driver; with window functions I'd use `LAG`." Naming the inefficiency and the fix beats either alone.
 
 ---
 name: multi-chain
