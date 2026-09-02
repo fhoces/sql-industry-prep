@@ -120,3 +120,5 @@ LEFT JOIN rides r2
   AND  r2.started_at < r1.started_at
 GROUP BY r1.ride_id
 LIMIT 10;
+
+
