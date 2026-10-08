@@ -79,8 +79,8 @@ It also introduces two artifact types that no earlier module has:
   (chaptered, about 30 minutes, for Apple Books), narrated from the text
   sections in `lesson/text/`.
 - **`module-06/quiz/`**: a walking quiz, read aloud and adaptive, published
-  as a claude.ai Artifact. The link and the rebuild steps are in
-  [`module-06/quiz/README.md`](module-06/quiz/README.md).
+  as a claude.ai Artifact: https://claude.ai/artifact/HRQfx89mVuNM8puPenTE8R (private; the rebuild steps are in
+  [`module-06/quiz/README.md`](module-06/quiz/README.md)).
 
 The scripts that build both live in `tools/quiz/` (copied from the
 book-summaries project, adapted for code questions and PNG covers).
