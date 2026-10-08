@@ -1,0 +1,17 @@
+Block one: who counts as a California billionaire.
+
+The first block builds a table called rtb ca all. I'll call it the all table. It holds every billionaire-day that counts as Californian: one row per person per date, with the same ten columns as the input.
+
+In the authors' original R code, this was a chain of filters. First keep rows with worth of at least one thousand. Then keep rows where the state is California, or the id is on a typed-in list of extra residents. Then drop rows whose id is on a typed-in list of people who never count.
+
+In SQL it is one where clause with three parts joined by and. Part one: forbes worth greater than or equal to one thousand. Part two, in parentheses: state equals California, or forbes id in a subquery. The subquery selects forbes id from the override table where the rule is include. Part three: forbes id not in another subquery, which selects the ids whose rule is exclude.
+
+Two points about the shape. The order of the three parts does not change the result. They are one true or false expression, evaluated per row. But the parentheses around part two do matter. And binds more tightly than or. Without the parentheses, the expression would split at the or. Everyone on the include list would skip the threshold test, and everyone the state field calls Californian would skip the exclude test.
+
+Now, why read the ids from a table instead of typing them into the SQL? In the real project the override ids come from confidential material. With the ids in a table, the SQL file can be public, and the list lives in a separate file that is never committed. Changing the list never touches the query. The subquery is module four's in, with a select inside the parentheses.
+
+Next, null. What happens to a row whose worth is null? The comparison, null greater than or equal to one thousand, is neither true nor false. It is unknown. A where clause keeps only rows where the whole expression is true, so the row is dropped. The same goes for a row whose state is null. State equals California is unknown, so that row survives only if the include list rescues it. That is exactly what R's filter does with N A, which is why the SQL and the R agree.
+
+And here is the trap. Suppose the exclude subquery returned a null id, because someone left a blank row in the override file. Then forbes id not in that list is never true for anyone. For a listed id it is false, and for everyone else it is unknown, because the database cannot rule out that the unknown value matches. The block would silently return zero rows. The real loader refuses an override row with no id for exactly this reason. If you ever need a null-safe version, the pattern is not exists with a correlated subquery.
+
+The block ends by creating an index on the date column of the new table. The three later blocks all filter or group by date, so the index saves work. On sixteen thousand rows you will not notice. On six million, which is the size of the real input, you will.

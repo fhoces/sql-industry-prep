@@ -1,0 +1,321 @@
+-- =============================================================================
+-- Module 6: SQL in a real replication
+-- =============================================================================
+--
+-- Rebuild the four tables of a real pipeline step (01_rtb_ca.sql in
+-- github.com/fhoces/opa-prop40) on the synthetic panel in
+-- data/rtb_sample.sqlite. Write one block per question, each creating its
+-- table, then grade the whole file:
+--
+--   python module-06/check.py module-06/exercise.sql
+--
+-- (Work on a copy if you like: python module-06/check.py my_answers.sql.)
+-- The grader runs the file on a scratch copy of the database, so it never
+-- changes the shared file. A blank file fails all four blocks.
+--
+-- Unlike modules 1 to 5 there are no .headers / .mode lines at the top: the
+-- grader runs the file with Python's executescript, which does not know the
+-- sqlite3 CLI's dot-commands. Each block should start with
+-- DROP TABLE IF EXISTS <table>; so the file can run twice.
+--
+-- Inputs:
+--   rtb_all_combined (date, forbes_id, forbes_name, state,
+--                     country_citizenship, source, industries,
+--                     forbes_worth, forbes_public_worth,
+--                     forbes_private_worth)       worth in $ million
+--   rtb_ca_cik       (forbes_id, cik)
+--   rtb_residency_overrides (forbes_id, rule, note)   rule is 'include' or
+--                                                     'exclude'
+--
+-- The reference answers are in a commented block at the bottom of this file
+-- and in module-06/solution.sql. Try each block cold first.
+-- =============================================================================
+
+
+-- -----------------------------------------------------------------------------
+-- Q1. California billionaires on every date
+--
+--     Create rtb_ca_all with the ten columns of rtb_all_combined, one row per
+--     (date, forbes_id), keeping a row only if all three hold:
+--       * forbes_worth is at least 1000 ($1 billion);
+--       * state is 'California', OR the id is on the override table with
+--         rule 'include';
+--       * the id is NOT on the override table with rule 'exclude'.
+--     Read the override ids from rtb_residency_overrides; do not type them.
+--     Optional: add an index on date.
+--
+--     Table: rtb_ca_all
+--     Columns: date, forbes_id, forbes_name, state, country_citizenship,
+--              source, industries, forbes_worth, forbes_public_worth,
+--              forbes_private_worth
+-- -----------------------------------------------------------------------------
+
+-- Your query here
+
+
+-- -----------------------------------------------------------------------------
+-- Q2. The seven year-end lists, in one long table
+--
+--     From rtb_ca_all, keep the seven snapshot dates 2019-12-31, 2020-12-31,
+--     2021-12-31, 2022-12-31, 2023-12-31, 2024-12-31 and 2026-01-01 (the
+--     data have no 2025-12-31, so 2026-01-01 stands in for the 2025 list).
+--     Add sec_cik from rtb_ca_cik, but only on the 2026-01-01 rows: every
+--     row of the other six lists must stay, with sec_cik NULL. Order by date,
+--     then worth descending, then forbes_id.
+--
+--     Table: rtb_ca_eoy
+--     Columns: the ten columns of rtb_ca_all, then sec_cik
+-- -----------------------------------------------------------------------------
+
+-- Your query here
+
+
+-- -----------------------------------------------------------------------------
+-- Q3. Wealth by industry on 2026-01-01, with a Total row
+--
+--     From the 2026-01-01 rows of rtb_ca_eoy, one row per industry plus a
+--     final row labelled 'Total':
+--       n_billionaires          count of people
+--       forbes_public_worth     sum of public worth, in $ billion, 0 (not
+--                               NULL) when every value in the group is NULL
+--       forbes_worth            sum of worth, in $ billion
+--       fraction_public_worth   forbes_public_worth / forbes_worth
+--       fraction_forbes_worth   the industry's share of the total worth
+--                               (1 on the Total row)
+--     Industry rows sorted by fraction_forbes_worth descending, Total last.
+--
+--     Table: rtb_ca_2026_01_01_industry
+--     Columns: industries, n_billionaires, forbes_public_worth, forbes_worth,
+--              fraction_public_worth, fraction_forbes_worth
+-- -----------------------------------------------------------------------------
+
+-- Your query here
+
+
+-- -----------------------------------------------------------------------------
+-- Q4. Daily count and wealth of California billionaires
+--
+--     From rtb_ca_all, one row per date, leaving out 2022-07-18, 2026-03-29
+--     and 2026-03-30:
+--       n_billionaires        count of people
+--       forbes_worth_total    total worth, in $ billion
+--       forbes_worth_top4     worth of the four ids 'marlo-zanderfell',
+--                             'calla-vantongeren', 'xavi-juniper' and
+--                             'quill-silverbrook' only, in $ billion
+--       forbes_private_worth  total private worth, in $ billion
+--     Every money column is 0, not NULL, when nothing in the group has a
+--     value.
+--
+--     Table: rtb_ca_aggregate
+--     Columns: date, n_billionaires, forbes_worth_total, forbes_worth_top4,
+--              forbes_private_worth
+-- -----------------------------------------------------------------------------
+
+-- Your query here
+
+
+-- =============================================================================
+-- Reference answers (the real file's four blocks; also module-06/solution.sql)
+-- =============================================================================
+--
+-- -- -----------------------------------------------------------------------------
+-- -- Q1. California billionaires on every date (intermediate table)
+-- --     Course: module 1 (WHERE, AND / OR, NULL in comparisons), module 4
+-- --     (subqueries: IN (SELECT ...) and NOT IN (SELECT ...))
+-- --     Beyond the course: DROP TABLE IF EXISTS, CREATE TABLE AS, CREATE INDEX.
+-- --
+-- --     Replaces a chain of filters in the authors' code: worth of at least
+-- --     $1 billion; then Forbes state "California" or an id on the override
+-- --     table's include list; then not an id on its exclude list. Here they are
+-- --     one WHERE clause.
+-- --
+-- --     NULL behaviour matches R's filter(): a row with NULL forbes_worth fails
+-- --     the first test, and a row with NULL state passes only through the
+-- --     include list. Both are dropped in R too. NOT IN (SELECT ...) would drop
+-- --     every row if the subquery returned a NULL id, so the loader refuses an
+-- --     override row without an id.
+-- -- -----------------------------------------------------------------------------
+-- DROP TABLE IF EXISTS rtb_ca_all;
+-- CREATE TABLE rtb_ca_all AS
+-- SELECT
+--   date,
+--   forbes_id,
+--   forbes_name,
+--   state,
+--   country_citizenship,
+--   source,
+--   industries,
+--   forbes_worth,
+--   forbes_public_worth,
+--   forbes_private_worth
+-- FROM rtb_all_combined
+-- WHERE forbes_worth >= 1000
+--   AND (
+--         state = 'California'
+--         OR forbes_id IN (SELECT forbes_id
+--                          FROM rtb_residency_overrides
+--                          WHERE rule = 'include')
+--       )
+--   AND forbes_id NOT IN (SELECT forbes_id
+--                         FROM rtb_residency_overrides
+--                         WHERE rule = 'exclude');
+--
+-- CREATE INDEX idx_rtb_ca_all_date ON rtb_ca_all (date);
+--
+--
+-- -- -----------------------------------------------------------------------------
+-- -- Q2. The seven year-end lists, in one long table
+-- --     Course: module 1 (WHERE), module 2 (LEFT JOIN)
+-- --     Beyond the course: IN (...) with a literal list; an extra condition in
+-- --     the ON clause of a LEFT JOIN.
+-- --
+-- --     The authors' code filters one date at a time, sorts by worth
+-- --     descending, and writes seven data frames to seven sheets. A database
+-- --     keeps one table with a date column instead. The seven sheets are then
+-- --     just WHERE date = '...' slices, and a new year is a new value in the IN
+-- --     list rather than a new block of code.
+-- --
+-- --     The 2026-01-01 snapshot is the "2025" list (the data have no
+-- --     2025-12-31 snapshot; 2025-12-30 is followed by 2026-01-01). Only that
+-- --     list gets sec_cik. Putting the date test in the ON clause, not in
+-- --     WHERE, keeps every row of the other six lists and leaves their sec_cik
+-- --     NULL. A WHERE test would drop them.
+-- --
+-- --     ORDER BY reproduces the sheets' row order (worth descending); forbes_id
+-- --     breaks ties so the order is deterministic.
+-- -- -----------------------------------------------------------------------------
+-- DROP TABLE IF EXISTS rtb_ca_eoy;
+-- CREATE TABLE rtb_ca_eoy AS
+-- SELECT
+--   ca.date,
+--   ca.forbes_id,
+--   ca.forbes_name,
+--   ca.state,
+--   ca.country_citizenship,
+--   ca.source,
+--   ca.industries,
+--   ca.forbes_worth,
+--   ca.forbes_public_worth,
+--   ca.forbes_private_worth,
+--   cik.cik AS sec_cik
+-- FROM rtb_ca_all ca
+-- LEFT JOIN rtb_ca_cik cik
+--   ON  cik.forbes_id = ca.forbes_id
+--   AND ca.date = '2026-01-01'
+-- WHERE ca.date IN (
+--         '2019-12-31', '2020-12-31', '2021-12-31', '2022-12-31',
+--         '2023-12-31', '2024-12-31', '2026-01-01'
+--       )
+-- ORDER BY ca.date, ca.forbes_worth DESC, ca.forbes_id;
+--
+--
+-- -- -----------------------------------------------------------------------------
+-- -- Q3. Wealth by industry on 2026-01-01, with a Total row
+-- --     Course: module 3 (GROUP BY), module 4 (CTE chain, UNION ALL to stack
+-- --     rows), module 5 (a window function, SUM(...) OVER ()), module 1
+-- --     (COALESCE)
+-- --     Beyond the course: an empty OVER () as a grand total; ORDER BY on a
+-- --     true/false expression to put the Total row last.
+-- --
+-- --     The authors' code summarises per industry, adds the share of the grand
+-- --     total in a second step, builds the Total row as a separate one-row
+-- --     summary, and binds the two by rows.
+-- --       * by_industry: the per-industry sums ($ billion). The share of public
+-- --         wealth is a ratio of the two sums.
+-- --       * with_share: SUM(forbes_worth) OVER () is the total over all rows of
+-- --         by_industry, the SQL form of an ungrouped mutate() after
+-- --         summarise() in dplyr.
+-- --       * total_row: the same sums over the whole list, labelled 'Total'.
+-- --       * stacked: UNION ALL puts the Total row under the industry rows.
+-- --     SQLite only lets a UNION be sorted by its output columns, so the final
+-- --     SELECT sorts the stacked CTE instead: (industries = 'Total') is 0 for
+-- --     industry rows and 1 for the Total row, so the Total sorts last.
+-- --
+-- --     No division by zero is possible: every group has worth >= $1 billion
+-- --     because Q1 kept only rows with forbes_worth >= 1000.
+-- -- -----------------------------------------------------------------------------
+-- DROP TABLE IF EXISTS rtb_ca_2026_01_01_industry;
+-- CREATE TABLE rtb_ca_2026_01_01_industry AS
+-- WITH list_2026 AS (
+--   SELECT industries, forbes_worth, forbes_public_worth
+--   FROM rtb_ca_eoy
+--   WHERE date = '2026-01-01'
+-- ),
+-- by_industry AS (
+--   SELECT
+--     industries,
+--     COUNT(*)                                       AS n_billionaires,
+--     COALESCE(SUM(forbes_public_worth), 0) / 1000.0 AS forbes_public_worth,
+--     COALESCE(SUM(forbes_worth), 0) / 1000.0        AS forbes_worth
+--   FROM list_2026
+--   GROUP BY industries
+-- ),
+-- with_share AS (
+--   SELECT
+--     industries,
+--     n_billionaires,
+--     forbes_public_worth,
+--     forbes_worth,
+--     forbes_public_worth / forbes_worth          AS fraction_public_worth,
+--     forbes_worth / SUM(forbes_worth) OVER ()    AS fraction_forbes_worth
+--   FROM by_industry
+-- ),
+-- total_row AS (
+--   SELECT
+--     'Total'                                        AS industries,
+--     COUNT(*)                                       AS n_billionaires,
+--     COALESCE(SUM(forbes_public_worth), 0) / 1000.0 AS forbes_public_worth,
+--     COALESCE(SUM(forbes_worth), 0) / 1000.0        AS forbes_worth
+--   FROM list_2026
+-- ),
+-- stacked AS (
+--   SELECT * FROM with_share
+--   UNION ALL
+--   SELECT
+--     industries,
+--     n_billionaires,
+--     forbes_public_worth,
+--     forbes_worth,
+--     forbes_public_worth / forbes_worth          AS fraction_public_worth,
+--     forbes_worth / forbes_worth                 AS fraction_forbes_worth
+--   FROM total_row
+-- )
+-- SELECT *
+-- FROM stacked
+-- ORDER BY (industries = 'Total'), fraction_forbes_worth DESC, industries;
+--
+--
+-- -- -----------------------------------------------------------------------------
+-- -- Q4. Daily count and wealth of California billionaires
+-- --     Course: module 3 (GROUP BY), module 1 (SUM(CASE WHEN ...) filtered
+-- --     aggregate)
+-- --     Beyond the course: NOT IN (...) and IN (...) with a literal list.
+-- --
+-- --     Per date: the number of CA billionaires, total worth, the worth of the
+-- --     four people the paper calls the top 4 (here, invented ids), and
+-- --     private worth, all in $ billion. The authors' code picks the top 4 by subsetting the worth
+-- --     vector inside the sum; the CASE expression here returns their worth and
+-- --     NULL for everyone else, and SUM skips the NULLs.
+-- --
+-- --     Three snapshot dates are left out, as in the authors' code.
+-- --
+-- --     Column order: the four columns of the authors' sheet first, then
+-- --     forbes_private_worth, which the authors' current code computes but
+-- --     their sheet does not have.
+-- -- -----------------------------------------------------------------------------
+-- DROP TABLE IF EXISTS rtb_ca_aggregate;
+-- CREATE TABLE rtb_ca_aggregate AS
+-- SELECT
+--   date,
+--   COUNT(*)                                        AS n_billionaires,
+--   COALESCE(SUM(forbes_worth), 0) / 1000.0         AS forbes_worth_total,
+--   COALESCE(SUM(CASE
+--                  WHEN forbes_id IN ('marlo-zanderfell', 'calla-vantongeren',
+--                                     'xavi-juniper', 'quill-silverbrook')
+--                  THEN forbes_worth
+--                END), 0) / 1000.0                  AS forbes_worth_top4,
+--   COALESCE(SUM(forbes_private_worth), 0) / 1000.0 AS forbes_private_worth
+-- FROM rtb_ca_all
+-- WHERE date NOT IN ('2022-07-18', '2026-03-29', '2026-03-30')
+-- GROUP BY date
+-- ORDER BY date;

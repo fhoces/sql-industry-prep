@@ -1,0 +1,1010 @@
+[
+ {
+  "file": "c01-L1-stem.mp3",
+  "text": "Look at the code on the screen. Worth is stored in millions of dollars. What does the number one thousand in the first line stand for?"
+ },
+ {
+  "file": "c01-L1-optA.mp3",
+  "text": "Option A. One billion dollars, the line a person must reach to count as a billionaire."
+ },
+ {
+  "file": "c01-L1-optB.mp3",
+  "text": "Option B. One thousand dollars, a floor that removes rows with placeholder worth values."
+ },
+ {
+  "file": "c01-L1-optC.mp3",
+  "text": "Option C. The top one thousand people by worth on each snapshot date."
+ },
+ {
+  "file": "c01-L1-optD.mp3",
+  "text": "Option D. One trillion dollars, since the later tables report their totals in billions."
+ },
+ {
+  "file": "c01-L1-right.mp3",
+  "text": "Correct. Worth is in millions, so one thousand million is one billion dollars. The later tables divide by one thousand to report billions."
+ },
+ {
+  "file": "c01-L1-wrong.mp3",
+  "text": "Not quite. The answer is A. Worth is in millions, so one thousand million is one billion dollars. The later tables divide by one thousand to report billions."
+ },
+ {
+  "file": "c01-L2-stem.mp3",
+  "text": "Filter order and the threshold. Block one joins the threshold, the state test and the exclude test with AND. If you reorder the three, what happens to the result?"
+ },
+ {
+  "file": "c01-L2-optA.mp3",
+  "text": "Option A. Rows are filtered in sequence, so putting the cheapest test first changes which rows survive."
+ },
+ {
+  "file": "c01-L2-optB.mp3",
+  "text": "Option B. The exclude test must come last, or excluded people slip back in through the state test."
+ },
+ {
+  "file": "c01-L2-optC.mp3",
+  "text": "Option C. Nothing changes. They form one true or false test per row, so their order does not matter."
+ },
+ {
+  "file": "c01-L2-optD.mp3",
+  "text": "Option D. The threshold must come first, or people below one billion pass through the include list."
+ },
+ {
+  "file": "c01-L2-right.mp3",
+  "text": "Correct. A where clause is a single boolean expression evaluated per row. Order among AND terms changes nothing. Parentheses around the OR are what matter."
+ },
+ {
+  "file": "c01-L2-wrong.mp3",
+  "text": "Not quite. The answer is C. A where clause is a single boolean expression evaluated per row. Order among AND terms changes nothing. Parentheses around the OR are what matter."
+ },
+ {
+  "file": "c01-L3-stem.mp3",
+  "text": "Look at the code on the screen. The parentheses around the OR are gone. Which rows does this version wrongly keep?"
+ },
+ {
+  "file": "c01-L3-optA.mp3",
+  "text": "Option A. Californians worth less than one billion, because OR is evaluated before AND."
+ },
+ {
+  "file": "c01-L3-optB.mp3",
+  "text": "Option B. Override includes worth less than one billion dollars, because AND binds before OR."
+ },
+ {
+  "file": "c01-L3-optC.mp3",
+  "text": "Option C. None. AND and OR have equal precedence, so SQL reads the conditions left to right."
+ },
+ {
+  "file": "c01-L3-optD.mp3",
+  "text": "Option D. Rows with a null state, because removing the parentheses makes the state test unknown."
+ },
+ {
+  "file": "c01-L3-right.mp3",
+  "text": "Correct. AND binds more tightly than OR, so the clause splits into worth and California, or the include list. Anyone on the include list now skips the threshold."
+ },
+ {
+  "file": "c01-L3-wrong.mp3",
+  "text": "Not quite. The answer is B. AND binds more tightly than OR, so the clause splits into worth and California, or the include list. Anyone on the include list now skips the threshold."
+ },
+ {
+  "file": "c02-L1-stem.mp3",
+  "text": "Residency overrides. What does a row with the rule include in the residency override table do?"
+ },
+ {
+  "file": "c02-L1-optA.mp3",
+  "text": "Option A. It adds that person to the panel on dates when Forbes left them out."
+ },
+ {
+  "file": "c02-L1-optB.mp3",
+  "text": "Option B. It keeps that person even when their worth falls below one billion dollars."
+ },
+ {
+  "file": "c02-L1-optC.mp3",
+  "text": "Option C. It marks that person's state field as checked, so the query trusts it."
+ },
+ {
+  "file": "c02-L1-optD.mp3",
+  "text": "Option D. It counts that person as Californian, whatever their state field says."
+ },
+ {
+  "file": "c02-L1-right.mp3",
+  "text": "Correct. Include means count as Californian regardless of the state on file. The threshold still applies, and no rows are added to the panel."
+ },
+ {
+  "file": "c02-L1-wrong.mp3",
+  "text": "Not quite. The answer is D. Include means count as Californian regardless of the state on file. The threshold still applies, and no rows are added to the panel."
+ },
+ {
+  "file": "c02-L2-stem.mp3",
+  "text": "Look at the code on the screen. Suppose the override file gains a row with a blank id, loaded as null, and the rule exclude. What happens to block one's result?"
+ },
+ {
+  "file": "c02-L2-optA.mp3",
+  "text": "Option A. It keeps no rows at all, because NOT IN with a null in its list is never true."
+ },
+ {
+  "file": "c02-L2-optB.mp3",
+  "text": "Option B. Nothing changes, because NOT IN skips null values in its list the way SUM does."
+ },
+ {
+  "file": "c02-L2-optC.mp3",
+  "text": "Option C. It keeps every row, because a null in the list makes the whole condition true."
+ },
+ {
+  "file": "c02-L2-optD.mp3",
+  "text": "Option D. It drops only people whose own id is null, and the panel has none of those."
+ },
+ {
+  "file": "c02-L2-right.mp3",
+  "text": "Correct. For a listed id NOT IN is false, and for every other id it is unknown, because the null might be that id. The where clause keeps nothing. That is why the loader refuses rows without an id."
+ },
+ {
+  "file": "c02-L2-wrong.mp3",
+  "text": "Not quite. The answer is A. For a listed id NOT IN is false, and for every other id it is unknown, because the null might be that id. The where clause keeps nothing. That is why the loader refuses rows without an id."
+ },
+ {
+  "file": "c02-L3-stem.mp3",
+  "text": "Residency overrides. Why does the real project keep the override ids in a separate table instead of typing them into the SQL?"
+ },
+ {
+  "file": "c02-L3-optA.mp3",
+  "text": "Option A. A subquery on a table runs faster than a typed list once the list has more than a few ids."
+ },
+ {
+  "file": "c02-L3-optB.mp3",
+  "text": "Option B. SQLite limits how many literal values an IN list may hold."
+ },
+ {
+  "file": "c02-L3-optC.mp3",
+  "text": "Option C. The ids come from confidential material, so the list stays private and the query public."
+ },
+ {
+  "file": "c02-L3-optD.mp3",
+  "text": "Option D. R and Python read typed lists differently, so a table keeps the two languages in step."
+ },
+ {
+  "file": "c02-L3-right.mp3",
+  "text": "Correct. The query is public code, but the override list comes from the authors' confidential material. With the ids in a gitignored table, changing the list never touches the SQL."
+ },
+ {
+  "file": "c02-L3-wrong.mp3",
+  "text": "Not quite. The answer is C. The query is public code, but the override list comes from the authors' confidential material. With the ids in a gitignored table, changing the list never touches the SQL."
+ },
+ {
+  "file": "c03-L1-stem.mp3",
+  "text": "Look at the code on the screen. Why is the last date January 1, 2026, rather than December 31, 2025?"
+ },
+ {
+  "file": "c03-L1-optA.mp3",
+  "text": "Option A. The paper's 2025 list is dated at the start of the tax year, which begins on January 1."
+ },
+ {
+  "file": "c03-L1-optB.mp3",
+  "text": "Option B. The data have no December 31, 2025 snapshot, so January 1 stands in for the 2025 list."
+ },
+ {
+  "file": "c03-L1-optC.mp3",
+  "text": "Option C. December 31, 2025 is one of the three dates the query leaves out of the daily series."
+ },
+ {
+  "file": "c03-L1-optD.mp3",
+  "text": "Option D. Forbes publishes its year-end list on the first day of the following year."
+ },
+ {
+  "file": "c03-L1-right.mp3",
+  "text": "Correct. The snapshots jump from December 30, 2025 to January 1, 2026. So the January 1 list plays the role of the 2025 year end."
+ },
+ {
+  "file": "c03-L1-wrong.mp3",
+  "text": "Not quite. The answer is B. The snapshots jump from December 30, 2025 to January 1, 2026. So the January 1 list plays the role of the 2025 year end."
+ },
+ {
+  "file": "c03-L2-stem.mp3",
+  "text": "Snapshot selection by exact date. Dates are stored as text, like 2019 dash 12 dash 31. Why does that format make comparing and sorting the text safe?"
+ },
+ {
+  "file": "c03-L2-optA.mp3",
+  "text": "Option A. SQLite turns any text that looks like a date into a date before it compares."
+ },
+ {
+  "file": "c03-L2-optB.mp3",
+  "text": "Option B. The dashes tell SQLite to compare each part as a separate number."
+ },
+ {
+  "file": "c03-L2-optC.mp3",
+  "text": "Option C. Text sorts like dates in any format, as long as the separator stays the same."
+ },
+ {
+  "file": "c03-L2-optD.mp3",
+  "text": "Option D. Year, month, day order with zero padding makes text order the same as date order."
+ },
+ {
+  "file": "c03-L2-right.mp3",
+  "text": "Correct. With the year first and two-digit months and days, comparing the text character by character gives the same order as the calendar. SQLite has no separate date type."
+ },
+ {
+  "file": "c03-L2-wrong.mp3",
+  "text": "Not quite. The answer is D. With the year first and two-digit months and days, comparing the text character by character gives the same order as the calendar. SQLite has no separate date type."
+ },
+ {
+  "file": "c03-L3-stem.mp3",
+  "text": "Look at the code on the screen. A colleague wants to pick each year's last snapshot like this, instead of typing the dates. What would it pick for 2025?"
+ },
+ {
+  "file": "c03-L3-optA.mp3",
+  "text": "Option A. December 30, 2025, a day earlier than the date the authors' 2025 list uses."
+ },
+ {
+  "file": "c03-L3-optB.mp3",
+  "text": "Option B. January 1, 2026, the same date that the typed list uses."
+ },
+ {
+  "file": "c03-L3-optC.mp3",
+  "text": "Option C. December 31, 2025, because MAX fills in the missing year-end date."
+ },
+ {
+  "file": "c03-L3-optD.mp3",
+  "text": "Option D. Nothing for 2025, because GROUP BY drops a year that has no December 31 row."
+ },
+ {
+  "file": "c03-L3-right.mp3",
+  "text": "Correct. Grouping by the first four characters puts January 1, 2026 in the year 2026. The latest 2025 date is December 30, so the lists would no longer match the authors'."
+ },
+ {
+  "file": "c03-L3-wrong.mp3",
+  "text": "Not quite. The answer is A. Grouping by the first four characters puts January 1, 2026 in the year 2026. The latest 2025 date is December 30, so the lists would no longer match the authors'."
+ },
+ {
+  "file": "c04-L1-stem.mp3",
+  "text": "One long table versus seven. Block two puts seven year-end lists into one table. What tells the lists apart?"
+ },
+ {
+  "file": "c04-L1-optA.mp3",
+  "text": "Option A. A list number column that block two adds to every row."
+ },
+ {
+  "file": "c04-L1-optB.mp3",
+  "text": "Option B. The sec cik column, which is filled in only on the 2026 list."
+ },
+ {
+  "file": "c04-L1-optC.mp3",
+  "text": "Option C. The date column. Each list is the set of rows with one of the seven dates."
+ },
+ {
+  "file": "c04-L1-optD.mp3",
+  "text": "Option D. The row order. Each list starts where the previous date's rows end."
+ },
+ {
+  "file": "c04-L1-right.mp3",
+  "text": "Correct. The long table keeps a date column instead of seven separate tables. Each old sheet is a where date equals slice."
+ },
+ {
+  "file": "c04-L1-wrong.mp3",
+  "text": "Not quite. The answer is C. The long table keeps a date column instead of seven separate tables. Each old sheet is a where date equals slice."
+ },
+ {
+  "file": "c04-L2-stem.mp3",
+  "text": "Look at the code on the screen. In the authors' workflow, what did a query like this one replace?"
+ },
+ {
+  "file": "c04-L2-optA.mp3",
+  "text": "Option A. The R code that computed the 2022 row of the daily aggregate table, one date at a time."
+ },
+ {
+  "file": "c04-L2-optB.mp3",
+  "text": "Option B. One of seven spreadsheet sheets, each written from a filtered, sorted data frame."
+ },
+ {
+  "file": "c04-L2-optC.mp3",
+  "text": "Option C. A join between the 2022 list and the C I K table."
+ },
+ {
+  "file": "c04-L2-optD.mp3",
+  "text": "Option D. The step that removed people below one billion dollars in 2022."
+ },
+ {
+  "file": "c04-L2-right.mp3",
+  "text": "Correct. The authors filtered one date at a time, sorted by worth, and wrote seven sheets. With one long table, each sheet is just this slice."
+ },
+ {
+  "file": "c04-L2-wrong.mp3",
+  "text": "Not quite. The answer is B. The authors filtered one date at a time, sorted by worth, and wrote seven sheets. With one long table, each sheet is just this slice."
+ },
+ {
+  "file": "c04-L3-stem.mp3",
+  "text": "One long table versus seven. Next year the paper adds a 2026 year-end list. Given the long-table design, what changes in the SQL?"
+ },
+ {
+  "file": "c04-L3-optA.mp3",
+  "text": "Option A. A new create table block for the 2026 list, copied from the others."
+ },
+ {
+  "file": "c04-L3-optB.mp3",
+  "text": "Option B. A new column in the year-end table that holds the 2026 worth."
+ },
+ {
+  "file": "c04-L3-optC.mp3",
+  "text": "Option C. Nothing at all, because block two picks every December 31 by itself."
+ },
+ {
+  "file": "c04-L3-optD.mp3",
+  "text": "Option D. One more date in block two's IN list, and no new block of code."
+ },
+ {
+  "file": "c04-L3-right.mp3",
+  "text": "Correct. The seven lists differ only in their date, so a new list is a new value in the IN list. Block two does not find dates by itself, it reads the typed list."
+ },
+ {
+  "file": "c04-L3-wrong.mp3",
+  "text": "Not quite. The answer is D. The seven lists differ only in their date, so a new list is a new value in the IN list. Block two does not find dates by itself, it reads the typed list."
+ },
+ {
+  "file": "c05-L1-stem.mp3",
+  "text": "Look at the code on the screen. What does the first line buy you?"
+ },
+ {
+  "file": "c05-L1-optA.mp3",
+  "text": "Option A. The file can run twice. Each run removes the old table before rebuilding it."
+ },
+ {
+  "file": "c05-L1-optB.mp3",
+  "text": "Option B. It deletes the rows of rtb all combined that failed the threshold on the last run."
+ },
+ {
+  "file": "c05-L1-optC.mp3",
+  "text": "Option C. It stops the block if the table already exists, so old results stay safe."
+ },
+ {
+  "file": "c05-L1-optD.mp3",
+  "text": "Option D. It frees memory before the create statement, which matters for large tables."
+ },
+ {
+  "file": "c05-L1-right.mp3",
+  "text": "Correct. Drop table if exists makes the file idempotent. Without it, a second run fails because the table already exists."
+ },
+ {
+  "file": "c05-L1-wrong.mp3",
+  "text": "Not quite. The answer is A. Drop table if exists makes the file idempotent. Without it, a second run fails because the table already exists."
+ },
+ {
+  "file": "c05-L2-stem.mp3",
+  "text": "CREATE TABLE AS and DROP TABLE IF EXISTS. What is the difference between a plain select and create table as select, with the same query?"
+ },
+ {
+  "file": "c05-L2-optA.mp3",
+  "text": "Option A. The second runs faster, because SQLite can skip formatting the output for the screen."
+ },
+ {
+  "file": "c05-L2-optB.mp3",
+  "text": "Option B. The first can use group by and joins, while create table as cannot."
+ },
+ {
+  "file": "c05-L2-optC.mp3",
+  "text": "Option C. The second keeps the order by, while a plain select may ignore it."
+ },
+ {
+  "file": "c05-L2-optD.mp3",
+  "text": "Option D. It stores the result as a table, so later blocks and other languages can read it."
+ },
+ {
+  "file": "c05-L2-right.mp3",
+  "text": "Correct. Create table as runs the same select and saves the result. Later blocks read it, and R and Python read it back with one shared select."
+ },
+ {
+  "file": "c05-L2-wrong.mp3",
+  "text": "Not quite. The answer is D. Create table as runs the same select and saves the result. Later blocks read it, and R and Python read it back with one shared select."
+ },
+ {
+  "file": "c05-L3-stem.mp3",
+  "text": "Look at the code on the screen. Someone runs this file a second time on the same database. What happens?"
+ },
+ {
+  "file": "c05-L3-optA.mp3",
+  "text": "Option A. It replaces the old table silently, because create table as overwrites by default."
+ },
+ {
+  "file": "c05-L3-optB.mp3",
+  "text": "Option B. It appends a second copy of every row, so the table doubles in size."
+ },
+ {
+  "file": "c05-L3-optC.mp3",
+  "text": "Option C. It stops with an error, because the table rtb ca all already exists."
+ },
+ {
+  "file": "c05-L3-optD.mp3",
+  "text": "Option D. It runs, but the index is built twice, which slows down later queries."
+ },
+ {
+  "file": "c05-L3-right.mp3",
+  "text": "Correct. Create table fails if the name is taken. That is what the drop table if exists line in the real file prevents."
+ },
+ {
+  "file": "c05-L3-wrong.mp3",
+  "text": "Not quite. The answer is C. Create table fails if the name is taken. That is what the drop table if exists line in the real file prevents."
+ },
+ {
+  "file": "c06-L1-stem.mp3",
+  "text": "A total row with UNION ALL. In block three, what does UNION ALL do?"
+ },
+ {
+  "file": "c06-L1-optA.mp3",
+  "text": "Option A. It joins the Total row to each industry row, so every row carries the grand total."
+ },
+ {
+  "file": "c06-L1-optB.mp3",
+  "text": "Option B. It stacks the one-row Total summary under the per-industry rows."
+ },
+ {
+  "file": "c06-L1-optC.mp3",
+  "text": "Option C. It removes duplicate industry rows before the Total row is added."
+ },
+ {
+  "file": "c06-L1-optD.mp3",
+  "text": "Option D. It adds a Total column to the right of the industry columns."
+ },
+ {
+  "file": "c06-L1-right.mp3",
+  "text": "Correct. Union all stacks two results with the same columns, keeping every row. Plain union would also remove duplicates."
+ },
+ {
+  "file": "c06-L1-wrong.mp3",
+  "text": "Not quite. The answer is B. Union all stacks two results with the same columns, keeping every row. Plain union would also remove duplicates."
+ },
+ {
+  "file": "c06-L2-stem.mp3",
+  "text": "Look at the code on the screen. What does the empty OVER clause make this sum add up?"
+ },
+ {
+  "file": "c06-L2-optA.mp3",
+  "text": "Option A. The grand total over every row of the C T E, the same on each row."
+ },
+ {
+  "file": "c06-L2-optB.mp3",
+  "text": "Option B. Worth within the current industry, so every fraction comes out as one."
+ },
+ {
+  "file": "c06-L2-optC.mp3",
+  "text": "Option C. Worth over the rows above the current one, which gives a running total."
+ },
+ {
+  "file": "c06-L2-optD.mp3",
+  "text": "Option D. Worth over every date in the panel, not only January 1, 2026."
+ },
+ {
+  "file": "c06-L2-right.mp3",
+  "text": "Correct. With nothing inside the over clause, the window is the whole result. It is the SQL form of an ungrouped mutate after summarise."
+ },
+ {
+  "file": "c06-L2-wrong.mp3",
+  "text": "Not quite. The answer is A. With nothing inside the over clause, the window is the whole result. It is the SQL form of an ungrouped mutate after summarise."
+ },
+ {
+  "file": "c06-L3-stem.mp3",
+  "text": "A total row with UNION ALL. Why does the final select of block three sort first by the comparison industries equals Total?"
+ },
+ {
+  "file": "c06-L3-optA.mp3",
+  "text": "Option A. It filters the Total row out before sorting and adds it back at the end."
+ },
+ {
+  "file": "c06-L3-optB.mp3",
+  "text": "Option B. It sorts alphabetically, and Total comes after every industry name."
+ },
+ {
+  "file": "c06-L3-optC.mp3",
+  "text": "Option C. It makes SQLite sort the two halves of the union separately."
+ },
+ {
+  "file": "c06-L3-optD.mp3",
+  "text": "Option D. It is zero for industry rows and one for Total, so Total sorts after every industry."
+ },
+ {
+  "file": "c06-L3-right.mp3",
+  "text": "Correct. A comparison is zero or one. Without it, Total, whose share is one, would sort first under the share-descending key."
+ },
+ {
+  "file": "c06-L3-wrong.mp3",
+  "text": "Not quite. The answer is D. A comparison is zero or one. Without it, Total, whose share is one, would sort first under the share-descending key."
+ },
+ {
+  "file": "c07-L1-stem.mp3",
+  "text": "Look at the code on the screen. The CASE has no ELSE. What does it return for everyone outside the four ids?"
+ },
+ {
+  "file": "c07-L1-optA.mp3",
+  "text": "Option A. Zero, because a CASE with no ELSE defaults to zero inside a sum."
+ },
+ {
+  "file": "c07-L1-optB.mp3",
+  "text": "Option B. An error, because every CASE expression needs an ELSE branch."
+ },
+ {
+  "file": "c07-L1-optC.mp3",
+  "text": "Option C. Null, which SUM then skips, so only the four worths are added."
+ },
+ {
+  "file": "c07-L1-optD.mp3",
+  "text": "Option D. The person's worth, because an unmatched CASE falls through to the THEN value."
+ },
+ {
+  "file": "c07-L1-right.mp3",
+  "text": "Correct. A case with no else returns null when nothing matches. Sum skips nulls, so the result is the four people's total."
+ },
+ {
+  "file": "c07-L1-wrong.mp3",
+  "text": "Not quite. The answer is C. A case with no else returns null when nothing matches. Sum skips nulls, so the result is the four people's total."
+ },
+ {
+  "file": "c07-L2-stem.mp3",
+  "text": "Conditional sums. What R idiom does block four's top four column replace?"
+ },
+ {
+  "file": "c07-L2-optA.mp3",
+  "text": "Option A. Filtering to the four people first, summarising, then joining back by date."
+ },
+ {
+  "file": "c07-L2-optB.mp3",
+  "text": "Option B. Subsetting the worth vector inside the sum, by whether the id is one of the four."
+ },
+ {
+  "file": "c07-L2-optC.mp3",
+  "text": "Option C. An if else over the whole data frame, before grouping by date."
+ },
+ {
+  "file": "c07-L2-optD.mp3",
+  "text": "Option D. Ranking people by worth each day and keeping the first four."
+ },
+ {
+  "file": "c07-L2-right.mp3",
+  "text": "Correct. The authors wrote sum of worth where the id is in the top four ids. A conditional sum does the same thing inside one group by."
+ },
+ {
+  "file": "c07-L2-wrong.mp3",
+  "text": "Not quite. The answer is B. The authors wrote sum of worth where the id is in the top four ids. A conditional sum does the same thing inside one group by."
+ },
+ {
+  "file": "c07-L3-stem.mp3",
+  "text": "Look at the code on the screen. On a date when none of the four ids appears, what would this column be without COALESCE?"
+ },
+ {
+  "file": "c07-L3-optA.mp3",
+  "text": "Option A. Null, because the sum of nothing but nulls is null."
+ },
+ {
+  "file": "c07-L3-optB.mp3",
+  "text": "Option B. Zero, because SUM over no matching rows is always zero in SQLite."
+ },
+ {
+  "file": "c07-L3-optC.mp3",
+  "text": "Option C. The date would be missing, because its group would have no rows."
+ },
+ {
+  "file": "c07-L3-optD.mp3",
+  "text": "Option D. Zero, because dividing by one thousand point zero forces a number."
+ },
+ {
+  "file": "c07-L3-right.mp3",
+  "text": "Correct. The date's group still has other billionaires, but the case gives null for all of them. Coalesce turns that null into zero, as R would."
+ },
+ {
+  "file": "c07-L3-wrong.mp3",
+  "text": "Not quite. The answer is A. The date's group still has other billionaires, but the case gives null for all of them. Coalesce turns that null into zero, as R would."
+ },
+ {
+  "file": "c08-L1-stem.mp3",
+  "text": "LEFT JOIN and a null sec_cik. On the year-end list for December 31, 2021, every sec cik is null. Why?"
+ },
+ {
+  "file": "c08-L1-optA.mp3",
+  "text": "Option A. Nobody on the 2021 list had filed with the S E C by then."
+ },
+ {
+  "file": "c08-L1-optB.mp3",
+  "text": "Option B. The C I K table has no rows for the people on the 2021 list."
+ },
+ {
+  "file": "c08-L1-optC.mp3",
+  "text": "Option C. Block one drops the C I K column for every date before 2026."
+ },
+ {
+  "file": "c08-L1-optD.mp3",
+  "text": "Option D. The join only looks up C I Ks on the January 1, 2026 rows."
+ },
+ {
+  "file": "c08-L1-right.mp3",
+  "text": "Correct. The date test sits in the on clause, so earlier rows never match, and the left join keeps them with a null. Many of those people do have C I K rows."
+ },
+ {
+  "file": "c08-L1-wrong.mp3",
+  "text": "Not quite. The answer is D. The date test sits in the on clause, so earlier rows never match, and the left join keeps them with a null. Many of those people do have C I K rows."
+ },
+ {
+  "file": "c08-L2-stem.mp3",
+  "text": "Look at the code on the screen. The date test moved from the ON clause into WHERE. What happens to the year-end table?"
+ },
+ {
+  "file": "c08-L2-optA.mp3",
+  "text": "Option A. Nothing changes, because ON and WHERE conditions are interchangeable in a join."
+ },
+ {
+  "file": "c08-L2-optB.mp3",
+  "text": "Option B. All seven lists survive, but every sec cik becomes null."
+ },
+ {
+  "file": "c08-L2-optC.mp3",
+  "text": "Option C. Only the 2026 list survives, because WHERE removes the other six lists after the join."
+ },
+ {
+  "file": "c08-L2-optD.mp3",
+  "text": "Option D. All seven lists survive, and every row gets a C I K, not just the 2026 list."
+ },
+ {
+  "file": "c08-L2-right.mp3",
+  "text": "Correct. Where filters after the join, so it drops every row not dated January 1, 2026. On and where are only interchangeable for an inner join."
+ },
+ {
+  "file": "c08-L2-wrong.mp3",
+  "text": "Not quite. The answer is C. Where filters after the join, so it drops every row not dated January 1, 2026. On and where are only interchangeable for an inner join."
+ },
+ {
+  "file": "c08-L3-stem.mp3",
+  "text": "LEFT JOIN and a null sec_cik. On the 2026 list, one person's sec cik is null. What can you conclude?"
+ },
+ {
+  "file": "c08-L3-optA.mp3",
+  "text": "Option A. They are not American citizens, because only citizens are given a C I K."
+ },
+ {
+  "file": "c08-L3-optB.mp3",
+  "text": "Option B. They have no C I K, from a null crosswalk value or a missing crosswalk row."
+ },
+ {
+  "file": "c08-L3-optC.mp3",
+  "text": "Option C. They are on the list only through the override table, which skips the lookup."
+ },
+ {
+  "file": "c08-L3-optD.mp3",
+  "text": "Option D. Their worth fell below one billion dollars on that date."
+ },
+ {
+  "file": "c08-L3-right.mp3",
+  "text": "Correct. On the 2026 rows the lookup does happen, so null means no C I K was found. The table alone cannot tell a null crosswalk value from a missing row."
+ },
+ {
+  "file": "c08-L3-wrong.mp3",
+  "text": "Not quite. The answer is B. On the 2026 rows the lookup does happen, so null means no C I K was found. The table alone cannot tell a null crosswalk value from a missing row."
+ },
+ {
+  "file": "c09-L1-stem.mp3",
+  "text": "Look at the code on the screen. The column holds five, null and seven. What are the three results?"
+ },
+ {
+  "file": "c09-L1-optA.mp3",
+  "text": "Option A. Three, two and twelve."
+ },
+ {
+  "file": "c09-L1-optB.mp3",
+  "text": "Option B. Three, three and twelve."
+ },
+ {
+  "file": "c09-L1-optC.mp3",
+  "text": "Option C. Two, two and twelve."
+ },
+ {
+  "file": "c09-L1-optD.mp3",
+  "text": "Option D. Three, two and null, because one of the values is missing."
+ },
+ {
+  "file": "c09-L1-right.mp3",
+  "text": "Correct. Count star counts rows, count of a column counts non-null values, and sum skips the null."
+ },
+ {
+  "file": "c09-L1-wrong.mp3",
+  "text": "Not quite. The answer is A. Count star counts rows, count of a column counts non-null values, and sum skips the null."
+ },
+ {
+  "file": "c09-L2-stem.mp3",
+  "text": "Null in SUM versus COUNT. Why does block four count billionaires with count star rather than count of public worth?"
+ },
+ {
+  "file": "c09-L2-optA.mp3",
+  "text": "Option A. Count star is faster, and the two give the same number after block one."
+ },
+ {
+  "file": "c09-L2-optB.mp3",
+  "text": "Option B. Count of a column counts distinct values, which would merge people with equal worth."
+ },
+ {
+  "file": "c09-L2-optC.mp3",
+  "text": "Option C. Count star skips rows with a null worth, which block four needs."
+ },
+ {
+  "file": "c09-L2-optD.mp3",
+  "text": "Option D. Only count star counts every billionaire. The other counts only people with a split."
+ },
+ {
+  "file": "c09-L2-right.mp3",
+  "text": "Correct. Count of a column skips nulls. Block one already dropped null worths, so every remaining row is a billionaire, and count star counts them all."
+ },
+ {
+  "file": "c09-L2-wrong.mp3",
+  "text": "Not quite. The answer is D. Count of a column skips nulls. Block one already dropped null worths, so every remaining row is a billionaire, and count star counts them all."
+ },
+ {
+  "file": "c09-L3-stem.mp3",
+  "text": "Look at the code on the screen. This version drops COALESCE. What does the Sports row show, and how does that compare with R?"
+ },
+ {
+  "file": "c09-L3-optA.mp3",
+  "text": "Option A. Zero, the same as R, because SUM skips the nulls."
+ },
+ {
+  "file": "c09-L3-optB.mp3",
+  "text": "Option B. Null, the same as R, because R's sum also returns N A for an all-missing group."
+ },
+ {
+  "file": "c09-L3-optC.mp3",
+  "text": "Option C. Null, while R's sum with N A removed would give zero for the all-missing group."
+ },
+ {
+  "file": "c09-L3-optD.mp3",
+  "text": "Option D. The Sports row disappears, because GROUP BY drops groups whose values are all null."
+ },
+ {
+  "file": "c09-L3-right.mp3",
+  "text": "Correct. Every public worth in Sports is null, so the SQL sum is null. R's sum with n a dot r m equals true returns zero, which is why the file wraps sums in coalesce."
+ },
+ {
+  "file": "c09-L3-wrong.mp3",
+  "text": "Not quite. The answer is C. Every public worth in Sports is null, so the SQL sum is null. R's sum with n a dot r m equals true returns zero, which is why the file wraps sums in coalesce."
+ },
+ {
+  "file": "c10-L1-stem.mp3",
+  "text": "Excluding dates with NOT IN. What does block four's where clause do with July 18, 2022, and March 29 and 30, 2026?"
+ },
+ {
+  "file": "c10-L1-optA.mp3",
+  "text": "Option A. It keeps only those three dates, which are the paper's event dates."
+ },
+ {
+  "file": "c10-L1-optB.mp3",
+  "text": "Option B. It leaves those three snapshot dates out of the daily table."
+ },
+ {
+  "file": "c10-L1-optC.mp3",
+  "text": "Option C. It sets the totals on those dates to zero, so the series has no gaps."
+ },
+ {
+  "file": "c10-L1-optD.mp3",
+  "text": "Option D. It moves those snapshots to the nearest neighbouring date."
+ },
+ {
+  "file": "c10-L1-right.mp3",
+  "text": "Correct. Not in with a typed list drops exactly those three dates. The reproduction follows the authors' choice."
+ },
+ {
+  "file": "c10-L1-wrong.mp3",
+  "text": "Not quite. The answer is B. Not in with a typed list drops exactly those three dates. The reproduction follows the authors' choice."
+ },
+ {
+  "file": "c10-L2-stem.mp3",
+  "text": "Look at the code on the screen. Block one warned that NOT IN can empty a result. Why is it safe here?"
+ },
+ {
+  "file": "c10-L2-optA.mp3",
+  "text": "Option A. The list is typed into the query, so it cannot pick up a null by accident."
+ },
+ {
+  "file": "c10-L2-optB.mp3",
+  "text": "Option B. NOT IN is only dangerous on text columns, and these are dates."
+ },
+ {
+  "file": "c10-L2-optC.mp3",
+  "text": "Option C. GROUP BY runs first, so a null cannot reach the where clause."
+ },
+ {
+  "file": "c10-L2-optD.mp3",
+  "text": "Option D. SQLite removes nulls from a NOT IN list when the list is typed in."
+ },
+ {
+  "file": "c10-L2-right.mp3",
+  "text": "Correct. The danger comes from a subquery that returns a null. Three typed dates contain no null. Dates are text here anyway, and where runs before group by."
+ },
+ {
+  "file": "c10-L2-wrong.mp3",
+  "text": "Not quite. The answer is A. The danger comes from a subquery that returns a null. Three typed dates contain no null. Dates are text here anyway, and where runs before group by."
+ },
+ {
+  "file": "c10-L3-stem.mp3",
+  "text": "Excluding dates with NOT IN. A learner replaces the not in list with three not-equal tests joined by OR. What does that version keep?"
+ },
+ {
+  "file": "c10-L3-optA.mp3",
+  "text": "Option A. Every date except the three, exactly like the not in list."
+ },
+ {
+  "file": "c10-L3-optB.mp3",
+  "text": "Option B. No dates at all, because no date can differ from all three at once."
+ },
+ {
+  "file": "c10-L3-optC.mp3",
+  "text": "Option C. Only the three dates, because OR reverses the meaning of not equal."
+ },
+ {
+  "file": "c10-L3-optD.mp3",
+  "text": "Option D. Every date, because any date differs from at least one of the three."
+ },
+ {
+  "file": "c10-L3-right.mp3",
+  "text": "Correct. A date equal to one of the three still differs from the other two, so at least one test is true. The correct rewrite joins the three tests with AND."
+ },
+ {
+  "file": "c10-L3-wrong.mp3",
+  "text": "Not quite. The answer is D. A date equal to one of the three still differs from the other two, so at least one test is true. The correct rewrite joins the three tests with AND."
+ },
+ {
+  "file": "c11-L1-stem.mp3",
+  "text": "Look at the code on the screen. Why is this fine at the sqlite3 prompt but not in the shared SQL file?"
+ },
+ {
+  "file": "c11-L1-optA.mp3",
+  "text": "Option A. LIMIT is not allowed in a file that Python runs with execute script."
+ },
+ {
+  "file": "c11-L1-optB.mp3",
+  "text": "Option B. Dot-commands work everywhere, but they slow down a file run from a script."
+ },
+ {
+  "file": "c11-L1-optC.mp3",
+  "text": "Option C. They are sqlite3 shell commands, which Python and R cannot run."
+ },
+ {
+  "file": "c11-L1-optD.mp3",
+  "text": "Option D. Select star is banned in shared files, because column order can change."
+ },
+ {
+  "file": "c11-L1-right.mp3",
+  "text": "Correct. Dot headers and dot mode belong to the sqlite3 program, not to SQL. Execute script and D B I only accept SQL."
+ },
+ {
+  "file": "c11-L1-wrong.mp3",
+  "text": "Not quite. The answer is C. Dot headers and dot mode belong to the sqlite3 program, not to SQL. Execute script and D B I only accept SQL."
+ },
+ {
+  "file": "c11-L2-stem.mp3",
+  "text": "Why no dot-commands. How does R run the shared SQL file, and why does that matter for dot-commands?"
+ },
+ {
+  "file": "c11-L2-optA.mp3",
+  "text": "Option A. It hands the whole file to the sqlite3 program, so dot-commands would work."
+ },
+ {
+  "file": "c11-L2-optB.mp3",
+  "text": "Option B. It sends each statement through D B I, which only understands SQL."
+ },
+ {
+  "file": "c11-L2-optC.mp3",
+  "text": "Option C. It translates the SQL into dplyr code first, and dot-commands have no dplyr version."
+ },
+ {
+  "file": "c11-L2-optD.mp3",
+  "text": "Option D. It calls Python's execute script, so Python's rules apply."
+ },
+ {
+  "file": "c11-L2-right.mp3",
+  "text": "Correct. The R runner splits the text at each semicolon that is real code and calls D B I db execute on each statement. A dot-command would be sent to SQLite as SQL and fail."
+ },
+ {
+  "file": "c11-L2-wrong.mp3",
+  "text": "Not quite. The answer is B. The R runner splits the text at each semicolon that is real code and calls D B I db execute on each statement. A dot-command would be sent to SQLite as SQL and fail."
+ },
+ {
+  "file": "c11-L3-stem.mp3",
+  "text": "Look at the code on the screen. Python runs this file with execute script. What happens?"
+ },
+ {
+  "file": "c11-L3-optA.mp3",
+  "text": "Option A. The drop runs, then execute script stops with a syntax error at the dot-command."
+ },
+ {
+  "file": "c11-L3-optB.mp3",
+  "text": "Option B. Execute script skips the unknown line and builds the table as usual."
+ },
+ {
+  "file": "c11-L3-optC.mp3",
+  "text": "Option C. Nothing runs, because execute script checks the whole file before running any of it."
+ },
+ {
+  "file": "c11-L3-optD.mp3",
+  "text": "Option D. The table is built, and the timer prints how long each statement took."
+ },
+ {
+  "file": "c11-L3-right.mp3",
+  "text": "Correct. Execute script runs statements in order and stops at the first error. The drop has already run, so the table is gone and not rebuilt."
+ },
+ {
+  "file": "c11-L3-wrong.mp3",
+  "text": "Not quite. The answer is A. Execute script runs statements in order and stops at the first error. The drop has already run, so the table is gone and not rebuilt."
+ },
+ {
+  "file": "c12-L1-stem.mp3",
+  "text": "Checking and vintage gaps. How does the checker compare your year-end lists with the authors' sheets?"
+ },
+ {
+  "file": "c12-L1-optA.mp3",
+  "text": "Option A. It compares the two files line by line, after sorting both of them by worth descending."
+ },
+ {
+  "file": "c12-L1-optB.mp3",
+  "text": "Option B. It compares the total worth of each list, within one in a million."
+ },
+ {
+  "file": "c12-L1-optC.mp3",
+  "text": "Option C. It hashes each file and checks that the two hashes are equal."
+ },
+ {
+  "file": "c12-L1-optD.mp3",
+  "text": "Option D. It aligns rows on forbes id within each date, then compares keys and cells."
+ },
+ {
+  "file": "c12-L1-right.mp3",
+  "text": "Correct. Aligning on a key makes the check immune to row order and number formatting. Then rows on one side only, counts, and each cell are compared."
+ },
+ {
+  "file": "c12-L1-wrong.mp3",
+  "text": "Not quite. The answer is D. Aligning on a key makes the check immune to row order and number formatting. Then rows on one side only, counts, and each cell are compared."
+ },
+ {
+  "file": "c12-L2-stem.mp3",
+  "text": "Look at the code on the screen. Why compare the numbers within a tolerance rather than exactly?"
+ },
+ {
+  "file": "c12-L2-optA.mp3",
+  "text": "Option A. The authors' sheet rounds every value to six decimal places."
+ },
+ {
+  "file": "c12-L2-optB.mp3",
+  "text": "Option B. Floating-point numbers cannot be compared with an equals sign at all."
+ },
+ {
+  "file": "c12-L2-optC.mp3",
+  "text": "Option C. Sums can differ in their last digits when programs add in a different order."
+ },
+ {
+  "file": "c12-L2-optD.mp3",
+  "text": "Option D. The tolerance absorbs small vintage gaps, such as one missing person."
+ },
+ {
+  "file": "c12-L2-right.mp3",
+  "text": "Correct. The real differences were about one in a trillion, from the order of addition. A missing person changes counts and fails no matter what the tolerance is."
+ },
+ {
+  "file": "c12-L2-wrong.mp3",
+  "text": "Not quite. The answer is C. The real differences were about one in a trillion, from the order of addition. A missing person changes counts and fails no matter what the tolerance is."
+ },
+ {
+  "file": "c12-L3-stem.mp3",
+  "text": "Checking and vintage gaps. Your daily table has twenty-five dates the authors' sheet lacks, and every shared date matches. How should you report it?"
+ },
+ {
+  "file": "c12-L3-optA.mp3",
+  "text": "Option A. As a failure, because a reproduction must have exactly the same rows."
+ },
+ {
+  "file": "c12-L3-optB.mp3",
+  "text": "Option B. As a vintage gap: the data and the sheet were saved at different times, and shared dates agree."
+ },
+ {
+  "file": "c12-L3-optC.mp3",
+  "text": "Option C. As a logic error in the date filter, since the authors' code skips those dates."
+ },
+ {
+  "file": "c12-L3-optD.mp3",
+  "text": "Option D. As unexplained, because a vintage gap needs a different code version, not a different data file."
+ },
+ {
+  "file": "c12-L3-right.mp3",
+  "text": "Correct. You can name the difference, extra dates from a later data file, and everything shared agrees. That is a vintage gap. Unexplained is for differences you cannot name."
+ },
+ {
+  "file": "c12-L3-wrong.mp3",
+  "text": "Not quite. The answer is B. You can name the difference, extra dates from a later data file, and everything shared agrees. That is a vintage gap. Unexplained is for differences you cannot name."
+ }
+]

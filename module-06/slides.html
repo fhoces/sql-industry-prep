@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Module 6: SQL in a Real Replication</title>
+    <meta charset="utf-8" />
+    <script src="slides_files/header-attrs-2.29/header-attrs.js"></script>
+    <link href="slides_files/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="slides_files/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Module 6: SQL in a Real Replication
+]
+.subtitle[
+## Reading and reproducing one step of a real research pipeline
+]
+
+---
+
+
+&lt;style type="text/css"&gt;
+.remark-code, .remark-inline-code { font-size: 80%; }
+.remark-slide-content { padding: 1em 2em; }
+.write-ref {
+  position: absolute;
+  bottom: 12px;
+  right: 90px;
+  background: #f0f8ff;
+  border: 1px solid #aac;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  text-decoration: none;
+  color: #336;
+  font-weight: bold;
+  z-index: 100;
+}
+.write-ref:hover { background: #ddeeff; text-decoration: none; }
+.sample-code h1 { font-size: 1.2em; margin-bottom: 0.2em; }
+.sample-code .remark-code { font-size: 110%; line-height: 1.35; }
+.small { font-size: 80%; }
+.nav-btn {
+  position: absolute;
+  bottom: 12px;
+  left: 40px;
+  font-size: 11px;
+  background: #e8eaf6;
+  padding: 2px 8px;
+  border-radius: 3px;
+  z-index: 100;
+  text-decoration: none;
+  color: #1a237e;
+}
+.nav-btn:hover { background: #c5cae9; }
+.nav-btn-br {
+  position: absolute;
+  bottom: 12px;
+  right: 70px;
+  font-size: 11px;
+  background: #e8eaf6;
+  padding: 2px 8px;
+  border-radius: 3px;
+  z-index: 100;
+  text-decoration: none;
+  color: #1a237e;
+}
+.nav-btn-br:hover { background: #c5cae9; }
+.inline-btn {
+  font-size: 11px;
+  background: #e8eaf6;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-decoration: none;
+  color: #1a237e;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.inline-btn:hover { background: #c5cae9; }
+&lt;/style&gt;
+
+
+
+# Course Map
+
+&lt;a href="../module-01/slides.html#schema" style="font-size:13px;background:#f0f8ff;border:1px solid #aac;border-radius:4px;padding:2px 8px;text-decoration:none;color:#336;"&gt;Schema ref&lt;/a&gt;
+
+&lt;table&gt;
+&lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;Module&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;th&gt;Sample Code&lt;/th&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;&lt;a href="../module-01/slides.html"&gt;SELECT, WHERE, Aggregates&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-01/slides.html#sample"&gt;M1&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;2&lt;/td&gt;&lt;td&gt;&lt;a href="../module-02/slides.html"&gt;JOINs&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-02/slides.html#sample"&gt;M2&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&lt;a href="../module-03/slides.html"&gt;GROUP BY, HAVING, Conversion Funnels&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-03/slides.html#sample"&gt;M3&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;4&lt;/td&gt;&lt;td&gt;&lt;a href="../module-04/slides.html"&gt;Subqueries and CTEs&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-04/slides.html#sample"&gt;M4&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;&lt;a href="../module-05/slides.html"&gt;Window Functions&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-05/slides.html#sample"&gt;M5&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;b&gt;6&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&lt;b&gt;SQL in a Real Replication&lt;/b&gt; &lt;i&gt;(you are here)&lt;/i&gt;&lt;/td&gt;&lt;td&gt;← current&lt;/td&gt;&lt;td&gt;&lt;a href="#sample"&gt;M6&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+---
+
+# Why This Module Breaks the Pattern
+
+Modules 1 to 5 use the ride-sharing database. This one does not, on purpose.
+
+--
+
+The skill is **reading and reproducing one step of a real pipeline**: the file
+`01_rtb_ca.sql` in [`fhoces/opa-prop40`](https://github.com/fhoces/opa-prop40), which
+turns daily Forbes billionaire snapshots into the California lists of a published paper.
+
+--
+
+The real snapshots are confidential, so the data here is a **synthetic panel in the same
+shape**: 60 invented people, invented ids, random-walk fortunes.
+
+--
+
+The SQL is the **real file, nearly verbatim**. `module-06/solution.sql` differs only in its
+banner and in four invented ids.
+
+---
+
+# Two Steps From Raw Data to a Paper
+
+**Step 1. Raw data to intermediate tables.** Daily snapshots (one row per person per day)
+are reduced to the California year-end lists, an industry table and a daily total. The
+authors keep these in a spreadsheet.
+
+**Step 2. Tables to results.** The spreadsheet feeds the paper's figures and estimates.
+
+--
+
+Reproducing step 2 needs only the spreadsheet. Reproducing step 1 means rewriting the
+reduction **and checking, cell by cell, that your tables match theirs**.
+
+--
+
+This module is step 1 for one pipeline: **four blocks, each creating one table**.
+
+| Block | Table | What it holds |
+|---|---|---|
+| Q1 | `rtb_ca_all` | every California billionaire-day |
+| Q2 | `rtb_ca_eoy` | seven year-end lists, stacked |
+| Q3 | `rtb_ca_2026_01_01_industry` | wealth by industry, plus a Total row |
+| Q4 | `rtb_ca_aggregate` | count and wealth per date |
+
+---
+name: data-main
+
+# The Data: One Row per Person per Day
+
+`rtb_all_combined`: 60 people × 293 dates (2019-12-31 to 2026-03-30), worth in **$ million**, missing values stored as **NULL**.
+
+
+```sql
+SELECT date, forbes_id, state, industries,
+       forbes_worth, forbes_public_worth, forbes_private_worth
+FROM rtb_all_combined
+WHERE date = '2026-01-01'
+ORDER BY forbes_worth DESC
+LIMIT 4;
+```
+
+
+
+
+Table: 4 records
+
+|date       |forbes_id         |state      |industries | forbes_worth| forbes_public_worth| forbes_private_worth|
+|:----------|:-----------------|:----------|:----------|------------:|-------------------:|--------------------:|
+|2026-01-01 |xavi-juniper      |California |Technology |     344709.7|            230266.1|             114443.6|
+|2026-01-01 |quill-silverbrook |California |Technology |     290506.1|            119979.0|             170527.1|
+|2026-01-01 |calla-vantongeren |California |Technology |     266399.7|             74325.5|             192074.2|
+|2026-01-01 |marlo-zanderfell  |California |Technology |     178812.1|             62584.2|             116227.9|
+
+Plus `rtb_ca_cik (forbes_id, cik)` and `rtb_residency_overrides (forbes_id, rule, note)`.
+
+&lt;a href="#data-dgp" class="nav-btn"&gt;How the panel is built →&lt;/a&gt;
+
+---
+name: q1-main
+
+# Q1: Who Counts as a California Billionaire?
+
+&lt;a class="write-ref" href="../module-04/slides.html#sample"&gt;M4&lt;/a&gt;
+*R idiom it replaces: a chain of `filter()` calls with two id vectors typed into the script.*
+
+```sql
+DROP TABLE IF EXISTS rtb_ca_all;
+CREATE TABLE rtb_ca_all AS
+SELECT date, forbes_id, forbes_name, state, ...   -- the ten input columns
+FROM rtb_all_combined
+*WHERE forbes_worth &gt;= 1000
+* AND (
+*       state = 'California'
+*       OR forbes_id IN (SELECT forbes_id
+*                        FROM rtb_residency_overrides
+*                        WHERE rule = 'include')
+*     )
+* AND forbes_id NOT IN (SELECT forbes_id
+*                       FROM rtb_residency_overrides
+*                       WHERE rule = 'exclude');
+```
+
+--
+
+One boolean expression per row: the order of the `AND` terms does not matter, **the
+parentheses do** (`AND` binds before `OR`). The ids live in a table, so the query can be
+public while the list stays private.
+
+---
+
+# Q1: NULL in Comparisons, and the NOT IN Trap
+
+**A NULL in a comparison is unknown, and `WHERE` keeps only true.**
+
+- `NULL &gt;= 1000` is unknown, so a row with no worth is dropped.
+- `NULL = 'California'` is unknown, so a row with no state survives only via the include list.
+- Both match what R's `filter()` does with `NA`.
+
+--
+
+**The trap.** If the exclude subquery returns a single NULL id:
+
+```sql
+SELECT 5 NOT IN (SELECT 7 UNION SELECT NULL) AS not_in_with_null;  -- NULL, never true
+```
+
+`x NOT IN (...)` is false for listed ids and unknown for everyone else, so **the block
+returns zero rows**. The real loader refuses an override row without an id. The NULL-safe
+form is `NOT EXISTS (SELECT 1 FROM ... WHERE id = x)`.
+
+--
+
+
+```sql
+SELECT COUNT(*) AS rows_kept, COUNT(DISTINCT forbes_id) AS people FROM rtb_ca_all;
+```
+
+
+
+
+Table: 1 records
+
+| rows_kept| people|
+|---------:|------:|
+|      8826|     35|
+
+---
+
+# Tables, Not Result Sets
+
+Every block has the same skeleton:
+
+```sql
+*DROP TABLE IF EXISTS rtb_ca_eoy;     -- idempotent: the file can run twice
+*CREATE TABLE rtb_ca_eoy AS           -- store the result instead of printing it
+SELECT ...;
+```
+
+--
+
+- **`CREATE TABLE ... AS SELECT`** saves the result, so the next block can read it and R
+  and Python read it back with the same `SELECT`. (R analogy: assigning a data frame,
+  not printing it.)
+- **`DROP TABLE IF EXISTS`** makes reruns safe. Without it the second run fails with
+  "table already exists".
+- **`CREATE INDEX idx_rtb_ca_all_date ON rtb_ca_all (date)`** speeds up the later blocks,
+  which all filter or group by date.
+
+--
+
+**No dot-commands.** Modules 1 to 5 start with `.headers on` / `.mode column`. Those are
+`sqlite3` shell commands, not SQL. Python runs the shared file with `executescript` and R
+with `DBI::dbExecute`, statement by statement, and both stop with a syntax error at the first dot-command.
+
+---
+name: q2-main
+
+# Q2: Seven Year-End Lists in One Long Table
+
+&lt;a class="write-ref" href="../module-02/slides.html#sample"&gt;M2&lt;/a&gt;
+*R idiom it replaces: seven `filter(date == d) |&gt; arrange(desc(worth))` data frames, one per sheet.*
+
+```sql
+CREATE TABLE rtb_ca_eoy AS
+SELECT ca.date, ca.forbes_id, ..., ca.forbes_private_worth,
+       cik.cik AS sec_cik
+FROM rtb_ca_all ca
+LEFT JOIN rtb_ca_cik cik
+  ON  cik.forbes_id = ca.forbes_id
+* AND ca.date = '2026-01-01'
+*WHERE ca.date IN (
+*       '2019-12-31', '2020-12-31', '2021-12-31', '2022-12-31',
+*       '2023-12-31', '2024-12-31', '2026-01-01'
+*     )
+ORDER BY ca.date, ca.forbes_worth DESC, ca.forbes_id;
+```
+
+--
+
+- **One table with a `date` column**: each old sheet is a `WHERE date = '...'` slice, and a
+  new year is one more value in the `IN` list.
+- **2026-01-01 is the "2025" list**: the data jump from 2025-12-30 to 2026-01-01.
+- **`forbes_id` breaks ties**, so the order is the same on every run.
+
+---
+
+# Q2: The Date Test Belongs in ON, Not WHERE
+
+Only the 2026-01-01 list gets `sec_cik`. With the test in `ON`, earlier rows find no match
+and the `LEFT JOIN` keeps them with `sec_cik` NULL.
+
+.pull-left[
+.small[
+
+```sql
+SELECT date, COUNT(*) AS n_rows,
+       COUNT(sec_cik) AS n_with_cik
+FROM rtb_ca_eoy
+GROUP BY date;
+```
+
+
+
+
+Table: 7 records
+
+|date       | n_rows| n_with_cik|
+|:----------|------:|----------:|
+|2019-12-31 |     27|          0|
+|2020-12-31 |     27|          0|
+|2021-12-31 |     30|          0|
+|2022-12-31 |     30|          0|
+|2023-12-31 |     30|          0|
+|2024-12-31 |     34|          0|
+|2026-01-01 |     33|         23|
+]
+]
+
+.pull-right[
+**Move the test to `WHERE` and six lists vanish.** `WHERE` filters after the join, so
+every row not dated 2026-01-01 is dropped.
+
+**In R:** `left_join()` then
+`mutate(sec_cik = if_else(date == "2026-01-01", cik, NA))`, not `filter()`.
+
+**A NULL `sec_cik` means two things**: "not looked up" on the six earlier lists, and "no
+CIK" (a NULL crosswalk value or no crosswalk row) on 2026-01-01.
+]
+
+---
+name: q3-main
+
+# Q3: The Industry Table as a CTE Chain
+
+&lt;a class="write-ref" href="../module-04/slides.html#sample"&gt;M4&lt;/a&gt;
+*R idiom it replaces: `summarise()` by industry, an ungrouped `mutate()` for shares, a one-row total, `bind_rows()`.*
+
+One CTE per R step:
+
+| CTE | What it does | Course |
+|---|---|---|
+| `list_2026` | the 2026-01-01 rows of `rtb_ca_eoy` | M1 |
+| `by_industry` | `GROUP BY industries`, `COUNT(*)`, `COALESCE(SUM(...), 0) / 1000.0` | M3, M1 |
+| `with_share` | each industry's share: `forbes_worth / SUM(forbes_worth) OVER ()` | M5 |
+| `total_row` | the same sums over the whole list, labelled `'Total'` | M3 |
+| `stacked` | `UNION ALL` puts the Total row under the industry rows | beyond |
+
+--
+
+The Sports owner never has a public/private split, so `SUM(forbes_public_worth)` is NULL
+for that group. **`COALESCE(..., 0)` returns 0**, as R's `sum(x, na.rm = TRUE)` does.
+
+&lt;a href="#q3-detail" class="nav-btn"&gt;Full block →&lt;/a&gt;
+
+---
+name: q3-window
+
+# Q3: A Grand Total With an Empty OVER, a Total Row With UNION ALL
+
+```sql
+with_share AS (
+  SELECT industries, n_billionaires, forbes_public_worth, forbes_worth,
+         forbes_public_worth / forbes_worth          AS fraction_public_worth,
+*        forbes_worth / SUM(forbes_worth) OVER ()    AS fraction_forbes_worth
+  FROM by_industry
+),
+...
+stacked AS (
+  SELECT * FROM with_share
+* UNION ALL
+  SELECT industries, ..., forbes_worth / forbes_worth AS fraction_forbes_worth
+  FROM total_row
+)
+SELECT * FROM stacked
+*ORDER BY (industries = 'Total'), fraction_forbes_worth DESC, industries;
+```
+
+.small[
+- **Empty `OVER ()`**: the window is every row, so the sum is the grand total (module 5 used `PARTITION BY`).
+- **`UNION ALL`** keeps every row; plain `UNION` would also deduplicate.
+- **`(industries = 'Total')`** is 0 or 1, so Total sorts last. SQLite sorts a `UNION` only by its output columns, hence the `stacked` CTE.
+- **No `NULLIF` needed**: Q1 guarantees every group has worth of at least $1 billion.
+]
+
+---
+
+# Q3: The Result
+
+Sports: `public_bn` is 0, not NULL, thanks to `COALESCE`. Total is last, with a share of 1.
+
+.small[
+
+```sql
+SELECT industries, n_billionaires,
+       ROUND(forbes_public_worth, 1) AS public_bn, ROUND(forbes_worth, 1) AS worth_bn,
+       ROUND(fraction_public_worth, 3) AS frac_public,
+       ROUND(fraction_forbes_worth, 3) AS frac_worth
+FROM rtb_ca_2026_01_01_industry;
+```
+
+
+
+
+Table: 9 records
+
+|industries            | n_billionaires| public_bn| worth_bn| frac_public| frac_worth|
+|:---------------------|--------------:|---------:|--------:|-----------:|----------:|
+|Technology            |             17|     572.1|   1270.2|       0.450|      0.781|
+|Finance &amp; Investments |              6|     131.5|    202.1|       0.651|      0.124|
+|Healthcare            |              3|      64.1|    103.5|       0.620|      0.064|
+|Sports                |              1|       0.0|     16.4|       0.000|      0.010|
+|Media &amp; Entertainment |              2|       8.8|     15.1|       0.581|      0.009|
+|Real Estate           |              1|       7.4|     11.6|       0.637|      0.007|
+|Diversified           |              1|       0.2|      4.3|       0.056|      0.003|
+|Fashion &amp; Retail      |              2|       1.7|      3.3|       0.510|      0.002|
+|Total                 |             33|     785.8|   1626.4|       0.483|      1.000|
+]
+
+---
+name: q4-main
+
+# Q4: Daily Totals With a Conditional Sum
+
+&lt;a class="write-ref" href="../module-01/slides.html#sample"&gt;M1&lt;/a&gt;
+*R idiom it replaces: `summarise(top4 = sum(worth[id %in% top4_ids]))`, subsetting inside the sum.*
+
+```sql
+CREATE TABLE rtb_ca_aggregate AS
+SELECT date,
+  COUNT(*)                                        AS n_billionaires,
+  COALESCE(SUM(forbes_worth), 0) / 1000.0         AS forbes_worth_total,
+* COALESCE(SUM(CASE
+*                WHEN forbes_id IN ('marlo-zanderfell', 'calla-vantongeren',
+*                                   'xavi-juniper', 'quill-silverbrook')
+*                THEN forbes_worth
+*              END), 0) / 1000.0                  AS forbes_worth_top4,
+  COALESCE(SUM(forbes_private_worth), 0) / 1000.0 AS forbes_private_worth
+FROM rtb_ca_all
+*WHERE date NOT IN ('2022-07-18', '2026-03-29', '2026-03-30')
+GROUP BY date
+ORDER BY date;
+```
+
+.small[
+- **No `ELSE`** means `ELSE NULL`: everyone outside the four is NULL, and `SUM` skips them.
+- **`NOT IN` with a typed list** cannot contain a NULL by accident, so the Q1 trap does not apply.
+- `forbes_private_worth` comes last: the authors' code computes it, their sheet does not have it.
+]
+
+---
+
+# NULL Semantics in One Table
+
+For a column holding **5, NULL, 7**:
+
+| Expression | Result | Over an all-NULL group |
+|---|---|---|
+| `SUM(x)` | 12 (skips NULL) | NULL |
+| `COALESCE(SUM(x), 0)` | 12 | 0, like R's `sum(na.rm = TRUE)` |
+| `COUNT(*)` | 3 (counts rows) | the number of rows |
+| `COUNT(x)` | 2 (counts non-NULL values) | 0 |
+| `AVG(x)` | 6 (12 / 2, not 12 / 3) | NULL |
+| `x &gt;= 1000` in `WHERE` | NULL rows dropped | all dropped |
+| `x NOT IN (SELECT ...)` with a NULL in the list | never true | zero rows kept |
+
+--
+
+The file counts billionaires with `COUNT(*)`: Q1 already dropped NULL worths, so every row
+is a billionaire. `COUNT(forbes_public_worth)` would count only people with a split on file.
+
+---
+
+# Checking Against the Authors' Sheet, and Vintage Gaps
+
+The real checker **never compares files line by line**. It aligns both sides on a key
+(`forbes_id` within each date, `industries`, or `date`), then reports rows only in ours,
+rows only in theirs, the largest absolute difference per numeric column (pass below
+`1e-6`), and text cells that differ. Counts must match exactly.
+
+--
+
+**What matched:** every target. Year-end lists, industry table and daily totals to about
+1e-12; public year-end totals to their 2-decimal rounding; R vs Python exports to zero.
+
+--
+
+**What did not at first, and why** (neither was a logic error):
+
+1. **One person** on the 2026 list: the authors' saved sheet included an id that their
+   shared script's override list did not. Sheet and script were different versions.
+2. **25 extra dates** in our daily table: reported, not failed, because only shared dates
+   have to agree.
+
+--
+
+**Vintage gap** = a difference you can name (an id, a set of dates, a column). If you
+cannot name it, it is unexplained. Never widen a tolerance to hide it.
+
+---
+
+# The Drill
+
+```bash
+Rscript data/build_rtb_sample.R                       # once: database + expected/
+python module-06/check.py module-06/exercise.sql      # blank: fails all 4 blocks
+python module-06/check.py module-06/solution.sql      # reference: passes all 4
+```
+
+--
+
+`check.py` copies the database to a scratch file, runs your file with `executescript`, and
+prints one line per block:
+
+```
+Q1  PASS  rtb_ca_all (8826 rows)
+Q2  FAIL  rtb_ca_eoy: 33 rows, expected 211
+```
+
+--
+
+**Break it on purpose**: move Q2's date test into `WHERE`; drop a `COALESCE` in Q3; drop
+Q1's parentheses; forget Q4's skipped dates. Each fails at its own block, and a Q1 mistake
+carries into the later blocks.
+
+Then: the audio lesson (`module-06/lesson/`), the walking quiz (`module-06/quiz/`), and
+the real file in `opa-prop40/bsz-analysis/sql/`.
+
+---
+class: inverse
+
+# The Key Takeaways
+
+&lt;br&gt;
+
+### 1. Every block is `DROP TABLE IF EXISTS` + `CREATE TABLE AS`: rerunnable, and readable from R and Python alike.
+
+--
+
+&lt;br&gt;
+
+### 2. One long table with a date column beats seven tables; a condition in `ON` joins some rows and keeps all.
+
+--
+
+&lt;br&gt;
+
+### 3. Think about NULL first: `SUM` skips it, `COUNT(*)` does not, `NOT IN` breaks on it, `COALESCE` turns an empty sum into R's 0.
+
+---
+class: sample-code
+name: sample
+
+# Sample Code: The Daily Aggregate (Q4)
+
+```sql
+DROP TABLE IF EXISTS rtb_ca_aggregate;               -- rerunnable
+CREATE TABLE rtb_ca_aggregate AS                     -- store, do not print
+SELECT
+  date,
+  COUNT(*)                                        AS n_billionaires,
+  COALESCE(SUM(forbes_worth), 0) / 1000.0         AS forbes_worth_total,
+  COALESCE(SUM(CASE                                  -- conditional sum
+                 WHEN forbes_id IN ('marlo-zanderfell', 'calla-vantongeren',
+                                    'xavi-juniper', 'quill-silverbrook')
+                 THEN forbes_worth                   -- no ELSE: NULL, skipped
+               END), 0) / 1000.0                  AS forbes_worth_top4,
+  COALESCE(SUM(forbes_private_worth), 0) / 1000.0 AS forbes_private_worth
+FROM rtb_ca_all
+WHERE date NOT IN ('2022-07-18', '2026-03-29', '2026-03-30')
+GROUP BY date
+ORDER BY date;
+```
+
+---
+
+# Course Map
+
+&lt;a href="../module-01/slides.html#schema" style="font-size:13px;background:#f0f8ff;border:1px solid #aac;border-radius:4px;padding:2px 8px;text-decoration:none;color:#336;"&gt;Schema ref&lt;/a&gt;
+
+&lt;table&gt;
+&lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;Module&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;th&gt;Sample Code&lt;/th&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;&lt;a href="../module-01/slides.html"&gt;SELECT, WHERE, Aggregates&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-01/slides.html#sample"&gt;M1&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;2&lt;/td&gt;&lt;td&gt;&lt;a href="../module-02/slides.html"&gt;JOINs&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-02/slides.html#sample"&gt;M2&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;3&lt;/td&gt;&lt;td&gt;&lt;a href="../module-03/slides.html"&gt;GROUP BY, HAVING, Conversion Funnels&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-03/slides.html#sample"&gt;M3&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;4&lt;/td&gt;&lt;td&gt;&lt;a href="../module-04/slides.html"&gt;Subqueries and CTEs&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-04/slides.html#sample"&gt;M4&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;5&lt;/td&gt;&lt;td&gt;&lt;a href="../module-05/slides.html"&gt;Window Functions&lt;/a&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="../module-05/slides.html#sample"&gt;M5&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;6&lt;/td&gt;&lt;td&gt;SQL in a Real Replication &lt;i&gt;(just finished)&lt;/i&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="#sample"&gt;M6&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+**You're done with the SQL course.** Drill the four blocks until you can write each one cold, then read the real file.
+
+---
+class: center, middle, inverse
+
+# Backup Slides
+
+---
+name: data-dgp
+
+# Backup: How the Synthetic Panel Is Built
+
+`data/build_rtb_sample.R`, seed 2026. Every person, id and number is invented.
+
+.small[
+- **Dates**: every 8th day from 2019-12-31 to 2026-03-30, plus the seven year-end dates and the three skipped dates. No 2025-12-31, as in the real data.
+- **Worth**: a random walk in log worth per person (drift 0.003, sd 0.04 per step), starting log-uniform between $0.6 billion and $40 billion; the top 4 start at $90 to $160 billion. Some people cross the $1 billion line.
+- **Hand-placed cases**, so every rule bites: one person whose state is Nevada but is included by the override table; one with no state, also included; one Californian excluded; two with no state and no override; two non-US citizens; one Sports owner with no public/private split ever.
+- **Missing values**: about 3% of rows lose the public/private split, 0.5% lose worth.
+- **Entry and exit**: ten people enter late, two drop out early.
+- **CIK crosswalk**: one row per possible Californian, a quarter with NULL `cik`.
+]
+
+
+```sql
+SELECT forbes_id, rule, note FROM rtb_residency_overrides;
+```
+
+
+
+
+Table: 3 records
+
+|forbes_id       |rule    |note                                                           |
+|:---------------|:-------|:--------------------------------------------------------------|
+|wren-underhill  |include |course example: state on file is Nevada, counted as California |
+|soren-driftwood |include |course example: no state on file, counted as California        |
+|rhea-dunmore    |exclude |course example: state on file is California, never counted     |
+
+&lt;a href="#data-main" class="nav-btn"&gt;← back&lt;/a&gt;
+
+---
+name: q3-detail
+
+# Backup: Q3, the Full Block (1 of 2)
+
+```sql
+DROP TABLE IF EXISTS rtb_ca_2026_01_01_industry;
+CREATE TABLE rtb_ca_2026_01_01_industry AS
+WITH list_2026 AS (
+  SELECT industries, forbes_worth, forbes_public_worth
+  FROM rtb_ca_eoy
+  WHERE date = '2026-01-01'
+),
+by_industry AS (
+  SELECT
+    industries,
+    COUNT(*)                                       AS n_billionaires,
+    COALESCE(SUM(forbes_public_worth), 0) / 1000.0 AS forbes_public_worth,
+    COALESCE(SUM(forbes_worth), 0) / 1000.0        AS forbes_worth
+  FROM list_2026
+  GROUP BY industries
+),
+with_share AS (
+  SELECT
+    industries, n_billionaires, forbes_public_worth, forbes_worth,
+    forbes_public_worth / forbes_worth          AS fraction_public_worth,
+    forbes_worth / SUM(forbes_worth) OVER ()    AS fraction_forbes_worth
+  FROM by_industry
+),
+```
+
+&lt;a href="#q3-main" class="nav-btn"&gt;← back&lt;/a&gt;
+
+---
+
+# Backup: Q3, the Full Block (2 of 2)
+
+```sql
+total_row AS (
+  SELECT
+    'Total'                                        AS industries,
+    COUNT(*)                                       AS n_billionaires,
+    COALESCE(SUM(forbes_public_worth), 0) / 1000.0 AS forbes_public_worth,
+    COALESCE(SUM(forbes_worth), 0) / 1000.0        AS forbes_worth
+  FROM list_2026
+),
+stacked AS (
+  SELECT * FROM with_share
+  UNION ALL
+  SELECT
+    industries, n_billionaires, forbes_public_worth, forbes_worth,
+    forbes_public_worth / forbes_worth          AS fraction_public_worth,
+    forbes_worth / forbes_worth                 AS fraction_forbes_worth
+  FROM total_row
+)
+SELECT *
+FROM stacked
+ORDER BY (industries = 'Total'), fraction_forbes_worth DESC, industries;
+```
+
+&lt;a href="#q3-main" class="nav-btn"&gt;← back&lt;/a&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

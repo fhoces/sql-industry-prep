@@ -1,0 +1,17 @@
+Null, the quiet column.
+
+Almost every decision in this file is about null. So here are the rules in one place, with one small example to hold in your head. Picture a column with three values: five, null, and seven.
+
+Sum skips nulls. Sum of five, null, seven is twelve. If every value in a group is null, the sum is null, not zero. That is the one place SQL and R disagree, because R's sum with N A removed returns zero for an empty set. Coalesce of the sum and zero makes SQL agree with R. That is why every money column in blocks three and four is wrapped in coalesce.
+
+Count star counts rows. For five, null, seven, count star is three. Count of a column counts the values that are not null. Count of that column is two. Those are different questions, and the file asks the first one on purpose. It wants the number of billionaires, and by then every row is a billionaire. If you wrote count of public worth instead, you would count only the people whose public and private split is on file, which is a smaller and different number.
+
+Average skips nulls too, in both the top and the bottom of the fraction. Average of five, null, seven is six. Twelve divided by two, not twelve divided by three. If you meant missing to count as zero, you have to say so with coalesce inside the average.
+
+Comparisons with null are unknown. Null greater than or equal to one thousand is unknown. Null equals California is unknown. A where clause keeps only rows where the condition is true, so unknown rows are dropped. Even null equals null is unknown. To test for missing values you write is null, not equals null.
+
+And not in, with a null anywhere in its list, is never true. For an id that is on the list, the answer is false. For any other id, the answer is unknown, because the database cannot rule out that the missing value is that id. So the where clause keeps nothing. With a subquery, that can happen by accident, from one blank row in a file. With a typed-in list, it cannot. The defense is to keep nulls out of the list, the way the real loader refuses an override row with no id, or to use not exists.
+
+Now connect this back to the loader. The raw files write missing values as empty strings. If those empty strings went into the database as empty strings, a sum would choke on them or treat them as zero, and the count of a column would count them as present. The loader turns every empty cell into a real null, so the database's own rules apply, and those rules line up with R's N A rules. Most of the agreement between the SQL and the R comes from that one decision, made before the first query ran.
+
+If you remember one sentence from this section, make it this one. Sum and average skip nulls, count star does not, and an all-null sum is null until you coalesce it.

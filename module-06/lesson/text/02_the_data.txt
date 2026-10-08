@@ -1,0 +1,15 @@
+The data: one row per person per day.
+
+The input table is called rtb all combined. R T B stands for real time billionaires. It has one row per person per snapshot date. In the synthetic panel that is sixty people and two hundred ninety-three dates, from December 31, 2019, to March 30, 2026. About sixteen thousand rows in all.
+
+There are ten columns. The date, stored as text in year, month, day order, so that sorting the text also sorts the dates. The forbes id, a lowercase name with hyphens, which is the key for a person. The person's name. The state on file. The country of citizenship. The source of the fortune, like software or hedge funds. The industry. And three money columns: forbes worth, forbes public worth, and forbes private worth. Public worth is the part held in listed shares. Private worth is the rest.
+
+All money is in millions of dollars. So the billionaire threshold, one billion dollars, is the number one thousand. When the later blocks report billions, they divide by one thousand. Keep that in mind, because a factor of a thousand is the easiest mistake to make in this file.
+
+Missing values are stored as null. Never as an empty string, never as zero. The real loader, the Python script that builds the database from the raw files, turns every empty cell into null on purpose, so that SQL's aggregates skip it the same way R skips N A when you say n a dot r m equals true.
+
+Two smaller tables come with it. The first, rtb ca cik, maps a forbes id to a C I K, the identifier the Securities and Exchange Commission gives to anyone who files with it. It is only used for the last year-end list. Some people have no C I K, and their value is null. The second small table is the residency override table. It has three columns: a forbes id, a rule, and a note. The rule is either include or exclude. Include means: count this person as a California resident, whatever the state field says. Exclude means: never count them.
+
+The synthetic panel is built so that every rule in the query has something to bite on. Some people start below one billion dollars and cross the line later. Some have no state on file at all. Two are not American citizens. One person's state says Nevada, but the override table includes them. One person's state says California, but the override table excludes them. Ten people enter the data late, and two drop out early. And one industry, Sports, has a single member whose public and private split is never on file. Remember that sports owner. They will matter when we get to sums of null.
+
+One more detail about dates. The year-end snapshots are December 31 of each year from 2019 to 2024. But there is no December 31, 2025. The data jump from December 30 to January 1, 2026. So January 1, 2026 stands in for the 2025 list. When you see that date in the query, read it as the 2025 year end.

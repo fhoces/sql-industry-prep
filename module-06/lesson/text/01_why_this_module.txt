@@ -1,0 +1,15 @@
+Why this module is different.
+
+This is module six of the SQL course, and it breaks the course's pattern on purpose. Modules one to five use the ride-sharing database. This one uses a panel of billionaires, because the point is no longer to answer an interview question. The point is to read, and then reproduce, one real step of a real research pipeline.
+
+Here is the setting. A published paper about California billionaires sits at the end of two steps. In the first step, raw data are reduced to a few small tables. The raw data are daily snapshots from Forbes, one row per person per day, with each person's estimated worth. The small tables are the list of California billionaires at each year end, a table of wealth by industry, and a daily total. The authors keep those small tables in a spreadsheet. In the second step, the spreadsheet feeds the paper's figures and estimates.
+
+Reproducing the second step only needs the spreadsheet. Reproducing the first step is harder. You rewrite the reduction from the raw data, then you check, cell by cell, that your tables match theirs. That first step, for one part of the pipeline, is a single SQL file of four blocks. Each block builds one table. This module walks through all four.
+
+The real snapshots are confidential, so you will work on a synthetic panel in exactly the same shape. Sixty invented people, invented ids, fortunes that follow random walks. The SQL you study is the real file, almost word for word. The reference copy in the module folder, called solution dot sql, differs from the real one only in its opening comment and in four invented ids. The real run, on the real data, lives in the public repository opa prop forty, in the folder for the B S Z analysis.
+
+You will meet every idea from the first five modules here, in a less tidy setting. Filtering with where, and how null behaves in a comparison, from module one. A left join, from module two. Group by, from module three. Subqueries and a chain of C T Es, from module four. A window function, from module five. And a handful of things the course did not cover: creating tables instead of printing results, stacking a total row under a grouped table, and putting an extra condition inside a join.
+
+Three habits will come up again and again. First, every block stores its result as a table, so the next block can read it, and so R and Python can read it back the same way. Second, the file contains SQL only. No shell commands like dot headers. Third, null is never an afterthought. Almost every decision in the file is about what happens to a missing value.
+
+At the end, you will write the four blocks yourself, in the exercise file, and a grader will tell you, block by block, whether your tables match the reference. Then there is a walking quiz, read aloud, that you can take with the phone in your pocket.

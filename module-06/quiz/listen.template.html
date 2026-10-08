@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Replication Quiz</title>
+<style>
+:root{--bg:#faf8f4;--fg:#1f1d1a;--muted:#6b665e;--card:#fff;--line:#e4dfd6;--accent:#2f5d50;--accent-fg:#fff;--ok:#2e7d4f;--ok-bg:#e6f4ec;--bad:#b4442f;--bad-bg:#fbe9e5;--dot:#d9d3c8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171614;--fg:#ece8e1;--muted:#a39d93;--card:#211f1c;--line:#35322d;--accent:#7fb8a6;--accent-fg:#10201b;--ok:#6cc495;--ok-bg:#1c2e24;--bad:#e58a76;--bad-bg:#35211c;--dot:#3d3934}}
+:root[data-theme="dark"]{--bg:#171614;--fg:#ece8e1;--muted:#a39d93;--card:#211f1c;--line:#35322d;--accent:#7fb8a6;--accent-fg:#10201b;--ok:#6cc495;--ok-bg:#1c2e24;--bad:#e58a76;--bad-bg:#35211c;--dot:#3d3934}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:680px;margin:0 auto;padding:24px 16px 96px}
+h1{font-size:1.4rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:1;border-bottom:1px solid var(--line)}
+button,select{font:inherit;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:10px 14px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+label.auto{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:.95rem}
+.stats{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:12px 0 4px;color:var(--muted);font-size:.95rem}
+.stats strong{color:var(--fg)}
+.lvl{display:inline-flex;gap:3px;vertical-align:middle;margin-left:4px}
+.lvl i{width:10px;height:10px;border-radius:2px;background:var(--dot)}
+.lvl i.on{background:var(--accent)}
+.mastery{display:grid;grid-template-columns:repeat(var(--n,12),1fr);gap:4px;margin:6px 0 4px}
+.mastery span{height:8px;border-radius:4px;background:var(--dot)}
+.mastery span[data-m="1"]{background:color-mix(in srgb,var(--accent) 35%,var(--dot))}
+.mastery span[data-m="2"]{background:color-mix(in srgb,var(--accent) 70%,var(--dot))}
+.mastery span[data-m="3"]{background:var(--accent)}
+.q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+.q.speaking{outline:3px solid var(--accent)}
+.q.done{opacity:.8}
+.tag{display:inline-block;font-size:.8rem;font-weight:600;color:var(--accent);border:1px solid currentColor;border-radius:999px;padding:1px 9px;margin-bottom:6px}
+.tag.review{color:var(--bad)}
+.qhead{cursor:pointer;border-radius:8px}
+.qhead:hover h2{color:var(--accent)}
+.q h2{font-size:1rem;margin:0 0 6px}
+.opts{display:grid;gap:8px;margin:10px 0 12px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;padding:12px}
+.opt b{flex:none;width:1.6em;height:1.6em;border-radius:50%;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line);font-size:.85rem}
+.opt:disabled{cursor:default;opacity:.75}
+.opt.right{border-color:var(--ok);background:var(--ok-bg);opacity:1}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg);opacity:1}
+.fb{border-left:4px solid var(--ok);padding:8px 12px;margin:0 0 12px;background:var(--bg);border-radius:6px}
+.fb.miss{border-color:var(--bad)}
+.fb small{display:block;color:var(--muted);margin-top:4px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.end{text-align:center;color:var(--muted)}
+.code{font:clamp(11px,2.9vw,14px)/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:10px -6px 0;overflow-x:auto;white-space:pre;tab-size:2}
+.code-note{font-size:.8rem;color:var(--muted);margin:8px 0 0}
+.link{background:none;border:none;color:var(--muted);text-decoration:underline;padding:4px;font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+<h1>SQL in a Real Replication</h1>
+<p class="sub">Module 6 of the SQL course, read aloud. Two right in a row moves you up a level, and a miss moves you down one. Missed ideas come back later at an easier level. Tap a question to hear it again, and tap your answer anytime. When a question says “look at the code on the screen”, the code is in the grey box.</p>
+<div class="bar">
+  <button class="primary" id="go">▶ Start</button>
+  <button id="stop">■ Stop</button>
+  <select id="rate" aria-label="Speed"><option value="0.85">Slow</option><option value="1" selected>Normal</option><option value="1.2">Fast</option></select>
+  <label class="auto"><input type="checkbox" id="auto" checked> Hands-free</label>
+</div>
+<div class="stats">
+  <span>Level: <strong id="lvlName"></strong><span class="lvl" id="lvlBars"><i></i><i></i><i></i></span></span>
+  <span id="score"></span>
+  <span id="mastered"></span>
+</div>
+<div class="mastery" id="mastery" title="Mastery per concept: darker means you've answered a harder level correctly"></div>
+<div id="list"></div>
+<p class="end"><button class="link" id="reset">Reset progress</button></p>
+</main>
+<script>
+const QUIZ = __DATA__;
+const C = QUIZ.concepts, LV = QUIZ.levels, L = "ABCD", AUDIO = "audio/", synth = window.speechSynthesis;
+const $ = id => document.getElementById(id), list = $('list'), rate = $('rate');
+const REVIEW_GAP = 3;   // a missed concept comes back after this many other questions
+
+/* ---------- state (persisted) ---------- */
+const fresh = () => ({ level: 2, streak: 0, n: 0, right: 0, mastery: {}, used: {}, due: [] });
+let S = fresh(), db = null, current = null, seq = 0;
+function save(){
+  try{ localStorage.setItem('sql06-state', JSON.stringify(S)); }catch(e){}
+  if(db) db.doc('state/progress').set({ ...S, updatedAt: new Date().toISOString() }).catch(()=>{});
+}
+async function load(){
+  try{ const s = localStorage.getItem('sql06-state'); if(s) S = { ...fresh(), ...JSON.parse(s) }; }catch(e){}
+  try{ db = window.claude ? await claude.use("db") : null; }catch(e){ db = null; }
+  if(db){ try{ const snap = await db.doc('state/progress').get(); if(snap.exists){ const d = JSON.parse(JSON.stringify(snap.data())); if((d.n||0) >= S.n) S = { ...fresh(), ...d }; } }catch(e){} }
+  stats(); $('go').textContent = S.n ? '▶ Continue' : '▶ Start';
+}
+
+/* ---------- adaptive choice ---------- */
+function pickLevel(cid, want){
+  const used = S.used[cid] || [];
+  for(const d of [0, -1, 1, -2, 2]){ const l = want + d; if(l >= 1 && l <= 3 && !used.includes(l)) return l; }
+  return want;
+}
+function nextQuestion(){
+  const due = S.due.find(d => d.at <= S.n);
+  if(due){ S.due = S.due.filter(d => d !== due); return { cid: due.cid, level: due.level, review: true }; }
+  const unseen = C.find(c => S.mastery[c.id] == null && !S.due.some(d => d.cid === c.id));
+  if(unseen) return { cid: unseen.id, level: pickLevel(unseen.id, S.level) };
+  const todo = C.filter(c => (S.mastery[c.id] || 0) < 3 && !S.due.some(d => d.cid === c.id))
+                .sort((a, b) => (S.mastery[a.id] || 0) - (S.mastery[b.id] || 0));
+  if(todo.length){ const c = todo[0]; return { cid: c.id, level: pickLevel(c.id, Math.min(3, Math.max(S.level, (S.mastery[c.id] || 0) + 1))) }; }
+  if(S.due.length){ const d = S.due.shift(); return { cid: d.cid, level: d.level, review: true }; }
+  return null;
+}
+function record(item, ok){
+  const { cid, level } = item;
+  S.n++; S.used[cid] = [...new Set([...(S.used[cid] || []), level])];
+  if(ok){
+    S.right++; S.mastery[cid] = Math.max(S.mastery[cid] || 0, level);
+    if(++S.streak >= 2 && S.level < 3){ S.level++; S.streak = 0; }
+  } else {
+    S.streak = 0; S.level = Math.max(1, S.level - 1);
+    if(S.mastery[cid] == null) S.mastery[cid] = 0;
+    S.due.push({ cid, level: Math.max(1, level - 1), at: S.n + REVIEW_GAP });
+  }
+  save(); stats();
+}
+
+/* ---------- display ---------- */
+function stats(){
+  $('lvlName').textContent = LV[S.level];
+  [...$('lvlBars').children].forEach((b, i) => b.classList.toggle('on', i < S.level));
+  $('score').textContent = S.n ? `${S.right} / ${S.n} correct` : '';
+  const m = C.filter(c => (S.mastery[c.id] || 0) >= 3).length;
+  $('mastered').textContent = `${m} / ${C.length} ideas mastered`;
+  $('mastery').style.setProperty('--n', C.length);
+  $('mastery').innerHTML = C.map(c => `<span data-m="${S.mastery[c.id] || 0}" title="${c.title}"></span>`).join('');
+}
+function el(tag, cls, txt){ const e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; }
+function showNext(){
+  document.querySelectorAll('.row button.primary').forEach(b => b.remove());
+  const item = nextQuestion();
+  if(!item){
+    const d = el('section', 'q'); d.append(el('h2', null, 'You have mastered every idea at the Deep level.'), el('div', null, 'Reset progress to start over.'));
+    list.append(d); d.scrollIntoView({ behavior: 'smooth' }); play([{ file: null, text: 'You have mastered every idea in this module at the deep level. Well done.' }]); return;
+  }
+  const c = C.find(x => x.id === item.cid), q = c.levels[item.level], id = 'card' + (++seq);
+  item.el = id; current = item;
+  const d = el('section', 'q'); d.id = id;
+  d.append(el('span', 'tag' + (item.review ? ' review' : ''), item.review ? `Review · ${LV[item.level]}` : LV[item.level]));
+  const head = el('div', 'qhead'); head.title = 'Tap to hear it again';
+  head.append(el('h2', null, c.title), el('div', null, q.q)); head.onclick = () => read(item);
+  const code = q.code ? el('pre', 'code', q.code) : null; if(code) code.dataset.lang = q.lang || '';
+  const box = el('div', 'opts'), fb = el('div', 'fb'); fb.hidden = true;
+  q.opts.forEach((o, j) => { const b = el('button', 'opt'); b.append(el('b', null, L[j]), el('span', null, o)); b.onclick = () => choose(item, j, box, fb); box.append(b); });
+  const row = el('div', 'row'), again = el('button', null, '🔊 Read again'); again.onclick = () => read(item); row.append(again);
+  d.append(head, ...(code ? [code] : []), box, fb, row); list.append(d);
+  item.row = row; read(item);
+}
+function choose(item, j, box, fb){
+  if(item.answered) return; item.answered = true;
+  const c = C.find(x => x.id === item.cid), q = c.levels[item.level], ok = j === q.answer;
+  const before = S.level; record(item, ok);
+  [...box.children].forEach((b, k) => { b.disabled = true; if(k === q.answer) b.classList.add('right'); else if(k === j) b.classList.add('wrong'); });
+  const lead = ok ? 'Correct. ' : `Not quite. The answer is ${L[q.answer]}. `;
+  fb.className = 'fb' + (ok ? '' : ' miss'); fb.hidden = false; fb.textContent = (ok ? '✓ ' : '✗ ') + lead + q.why;
+  const note = S.level > before ? `Moving up to ${LV[S.level]}.` : S.level < before ? `Easing down to ${LV[S.level]}.` : ok ? '' : `This idea will come back in a few questions.`;
+  if(note) fb.append(el('small', null, note));
+  document.getElementById(item.el).classList.add('done');
+  const nx = el('button', 'primary', 'Next question ▶'); nx.onclick = () => { nx.remove(); stop(); showNext(); }; item.row.append(nx);
+  if(db) db.collection('attempts').add({ concept: c.id, topic: c.title, level: item.level, review: !!item.review, chose: q.opts[j], correct: ok, at: new Date().toISOString() }).catch(()=>{});
+  const k = `${item.cid}-L${item.level}`;
+  play([{ file: `${k}-${ok ? 'right' : 'wrong'}.mp3`, text: lead + q.why }], () => { if($('auto').checked && nx.isConnected){ nx.remove(); showNext(); } });
+}
+function read(item){
+  const c = C.find(x => x.id === item.cid), q = c.levels[item.level], k = `${item.cid}-L${item.level}`;
+  play([{ file: `${k}-stem.mp3`, text: q.code ? q.q : `${c.title}. ${q.q}`, el: item.el },  // code is shown, never spoken
+        ...q.opts.map((o, j) => ({ file: `${k}-opt${L[j]}.mp3`, text: `Option ${L[j]}. ${o}.`, el: item.el }))]);
+}
+
+/* ---------- playback: recorded MP3 (audiobook voice), falling back to browser speech ---------- */
+let queue = [], cur = null, gen = 0, onDone = null;
+function stop(){ gen++; queue = []; onDone = null; if(cur){ cur.pause(); cur = null; } if(synth) synth.cancel(); mark(null); }
+function play(items, done){ stop(); queue = items.slice(); onDone = done || null; step(gen); }
+function step(g){
+  if(g !== gen) return;
+  const it = queue.shift();
+  if(!it){ mark(null); const f = onDone; onDone = null; if(f) f(); return; }
+  mark(it.el || null);
+  const next = () => { if(g === gen) step(g); };
+  let fell = false;
+  const speak = () => { if(fell || g !== gen) return; fell = true; cur = null;
+    if(!synth){ next(); return; }
+    const u = new SpeechSynthesisUtterance(it.text); u.rate = +rate.value; u.lang = 'en-US'; u.onend = next; u.onerror = next; synth.speak(u); };
+  if(!it.file){ speak(); return; }
+  const a = new Audio(AUDIO + it.file); a.playbackRate = +rate.value; cur = a;
+  a.onended = next; a.onerror = speak; a.play().catch(speak);
+}
+function mark(id){ document.querySelectorAll('.q').forEach(e => e.classList.remove('speaking')); if(id){ const e = $(id); if(e){ e.classList.add('speaking'); e.scrollIntoView({ behavior: 'smooth', block: 'center' }); } } }
+
+$('go').onclick = () => { if(current && !current.answered) read(current); else showNext(); $('go').textContent = '▶ Resume'; };
+$('stop').onclick = stop;
+rate.onchange = () => { if(cur) cur.playbackRate = +rate.value; };
+$('reset').onclick = () => { if(!confirm('Reset all progress for this quiz?')) return; stop(); S = fresh(); current = null; list.innerHTML = ''; save(); stats(); $('go').textContent = '▶ Start'; };
+stats(); load();
+</script>
+</body>
+</html>

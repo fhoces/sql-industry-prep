@@ -1,0 +1,15 @@
+Tables, not result sets.
+
+Every block in the file opens with the same two statements. Drop table if exists, then the table name. Then create table, the name, as, and a select. This is the first thing the course did not teach, so let's slow down.
+
+In modules one to five, a query printed a result and then forgot it. Create table as select runs the same query, but stores the result as a new table in the database. The next block can then read from it, the way the year-end block reads from the all table. In R terms, it is the difference between printing a data frame and assigning it to a name.
+
+Drop table if exists makes the file idempotent. That word means: running it twice gives the same result as running it once. Without the drop, the second run would fail with an error saying the table already exists. With it, each block deletes its old output and rebuilds it. You can fix a mistake in block three and rerun the whole file without cleaning anything up by hand.
+
+There is a second reason to store tables. The real project runs the same SQL file from two languages. Python runs it with a single call, execute script, on a SQLite connection. R runs it through the D B I package, splitting the file into statements and sending each one with D B I db execute. Once the tables exist, both languages read them back with the same select statement and write them to text files. Because one SQL file is the single source of truth, the R and Python outputs cannot drift apart. In the real check, they matched to exactly zero difference.
+
+That setup explains a rule you will notice right away: no dot commands. The exercise files of modules one to five start with dot headers on and dot mode column. Those are commands of the sqlite3 shell program, the one you type into at a terminal. They are not SQL. Python's execute script would stop with a syntax error at the first dot. R's D B I would do the same. So a file meant to be shared by programs holds SQL only. When you want pretty output at the terminal, type the dot commands into the shell yourself, then run your selects.
+
+One more habit from the same family. The file never relies on the order in which a table happens to store its rows. When order matters, the query says order by, and adds a tie-breaker. You will see that in the next block. The exports sort each table again by a fixed key before writing, so two runs, or two languages, produce identical files.
+
+So the pattern for every block is: drop the old table if it exists, create the new one as a select, and let later blocks, and other languages, read it back. Keep that skeleton in mind, and each block reduces to one select statement.

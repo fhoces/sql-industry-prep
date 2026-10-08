@@ -1,0 +1,19 @@
+Block three: the industry table.
+
+The third block builds the industry table for January 1, 2026. One row per industry, plus a final row labelled Total. Each row has five numbers. The count of billionaires. Public worth, in billions. Total worth, in billions. The share of the industry's worth that is public. And the industry's share of all California billionaire wealth.
+
+The authors' R code did this in four steps. Summarise by industry. Add the share of the grand total in a second step. Build the total row as a separate one-row summary. Then bind the two tables by rows. The SQL mirrors those steps with a chain of C T Es, module four's with clause, one C T E per step. Each C T E is a named, temporary result that the next one can read.
+
+The first C T E, list 2026, just takes the January 1, 2026 rows from the year-end table.
+
+The second, by industry, groups by industry. It counts rows with count star. It sums public worth and total worth, and divides each sum by one thousand point zero to get billions. The point zero matters in some databases, to force decimal division instead of whole-number division. And each sum is wrapped in coalesce, with zero as the fallback. Remember the sports owner, whose public and private split is never on file? In the Sports group, every public worth is null, so the sum is null. Coalesce turns that null into zero, which is what R returns for a sum of all N A values when you remove N A.
+
+The third C T E, with share, adds the two fractions. Public share is public worth divided by worth. And the industry's share of the total is its worth divided by sum of worth over, with empty parentheses. That is a window function, from module five, with nothing inside the over. In module five, over partition by split the rows into groups. With an empty over, the window is every row of the C T E, so the sum is the grand total, repeated on every row. It is the SQL version of an ungrouped mutate after a summarise in dplyr.
+
+The fourth C T E, total row, computes the same sums over the whole list, with the word Total in the industry column.
+
+The fifth, stacked, puts the total row under the industry rows with union all. Union all stacks two results with the same columns. Plain union would also remove duplicate rows, which you never want for a table like this. Use union all unless you mean to deduplicate.
+
+The last step sorts. S Q Lite only lets you sort a union by its output columns, so the final select reads the stacked C T E and sorts it. The first sort key is a comparison: industries equals Total. That is zero for every industry row and one for the Total row, so Total lands at the bottom. Then industries by share, from largest to smallest.
+
+What about dividing by zero? Module five guarded a ratio with null if, which turns a zero denominator into null. This file does not need it, because every group has worth of at least one billion dollars. Block one guaranteed that. The file says so in a comment, instead of adding a guard that can never fire.

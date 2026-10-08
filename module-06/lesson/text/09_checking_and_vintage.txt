@@ -1,0 +1,17 @@
+Checking against the authors' sheet, and vintage gaps.
+
+Building the tables is half of a reproduction. The other half is showing that they match. The real project has a checker, a Python script, and the grader in this module works the same way, so it is worth knowing how it thinks.
+
+It never compares two files line by line. Line by line breaks on harmless differences: a different row order, a number written with more digits. Instead it aligns both sides on a key. For the year-end lists, the key is the forbes id within each date. For the industry table, it is the industry name. For the daily table, it is the date. Once both sides are lined up by key, it reports four things. The rows only in ours. The rows only in theirs. The largest absolute difference in each numeric column. And the text cells that differ. A numeric column passes if its largest difference is below one in a million. Counts must match exactly. Text must match exactly.
+
+Why a tolerance at all? Because a sum of decimal numbers depends slightly on the order of addition, and two programs rarely add in the same order. The differences in the real run were around one in a trillion. A tolerance of one in a million is loose enough to ignore that noise, and tight enough that any real mistake, a missing person, a wrong date, a factor of a thousand, fails loudly.
+
+Here is what matched in the final run. All seven year-end lists, with the same ids, the same text, and worths within about one in a trillion. The industry table. The daily totals, on every date the authors' sheet has. The year-end totals in the public workbook, to the two decimals those cells were typed with. And the R and Python exports of the same SQL, to exactly zero difference.
+
+And here is what did not match at first, and why. Neither was a logic error.
+
+The first was one person. An early version of the check was off by one name on the 2026 list. The authors' saved sheet included one id that the override list in their shared script did not. The sheet and the script were different versions of the same work. Following the list behind the published workbook fixed it, and then everything matched.
+
+The second was a set of dates. The SQL output has twenty-five dates that the authors' daily sheet does not have. The checker lists them, but it does not fail on them, because a reproduction has to agree on the dates both sides have. Extra dates mean the data file and the sheet were saved at different times.
+
+Both are vintage gaps. Vintage, as in wine: the same product from a different year. A reproduction compares your output with a snapshot of someone else's work, and snapshots age. So when numbers disagree, first ask whether the inputs or the code version differ. Call it a vintage gap only when you can name the difference: one id, a set of dates, a column the sheet does not have. If you cannot name it, call it unexplained and keep looking. And never widen a tolerance to make a mismatch go away.

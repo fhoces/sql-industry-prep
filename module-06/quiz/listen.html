@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Replication Quiz</title>
+<style>
+:root{--bg:#faf8f4;--fg:#1f1d1a;--muted:#6b665e;--card:#fff;--line:#e4dfd6;--accent:#2f5d50;--accent-fg:#fff;--ok:#2e7d4f;--ok-bg:#e6f4ec;--bad:#b4442f;--bad-bg:#fbe9e5;--dot:#d9d3c8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171614;--fg:#ece8e1;--muted:#a39d93;--card:#211f1c;--line:#35322d;--accent:#7fb8a6;--accent-fg:#10201b;--ok:#6cc495;--ok-bg:#1c2e24;--bad:#e58a76;--bad-bg:#35211c;--dot:#3d3934}}
+:root[data-theme="dark"]{--bg:#171614;--fg:#ece8e1;--muted:#a39d93;--card:#211f1c;--line:#35322d;--accent:#7fb8a6;--accent-fg:#10201b;--ok:#6cc495;--ok-bg:#1c2e24;--bad:#e58a76;--bad-bg:#35211c;--dot:#3d3934}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:680px;margin:0 auto;padding:24px 16px 96px}
+h1{font-size:1.4rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:1;border-bottom:1px solid var(--line)}
+button,select{font:inherit;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);padding:10px 14px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+label.auto{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:.95rem}
+.stats{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:12px 0 4px;color:var(--muted);font-size:.95rem}
+.stats strong{color:var(--fg)}
+.lvl{display:inline-flex;gap:3px;vertical-align:middle;margin-left:4px}
+.lvl i{width:10px;height:10px;border-radius:2px;background:var(--dot)}
+.lvl i.on{background:var(--accent)}
+.mastery{display:grid;grid-template-columns:repeat(var(--n,12),1fr);gap:4px;margin:6px 0 4px}
+.mastery span{height:8px;border-radius:4px;background:var(--dot)}
+.mastery span[data-m="1"]{background:color-mix(in srgb,var(--accent) 35%,var(--dot))}
+.mastery span[data-m="2"]{background:color-mix(in srgb,var(--accent) 70%,var(--dot))}
+.mastery span[data-m="3"]{background:var(--accent)}
+.q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+.q.speaking{outline:3px solid var(--accent)}
+.q.done{opacity:.8}
+.tag{display:inline-block;font-size:.8rem;font-weight:600;color:var(--accent);border:1px solid currentColor;border-radius:999px;padding:1px 9px;margin-bottom:6px}
+.tag.review{color:var(--bad)}
+.qhead{cursor:pointer;border-radius:8px}
+.qhead:hover h2{color:var(--accent)}
+.q h2{font-size:1rem;margin:0 0 6px}
+.opts{display:grid;gap:8px;margin:10px 0 12px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;padding:12px}
+.opt b{flex:none;width:1.6em;height:1.6em;border-radius:50%;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line);font-size:.85rem}
+.opt:disabled{cursor:default;opacity:.75}
+.opt.right{border-color:var(--ok);background:var(--ok-bg);opacity:1}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg);opacity:1}
+.fb{border-left:4px solid var(--ok);padding:8px 12px;margin:0 0 12px;background:var(--bg);border-radius:6px}
+.fb.miss{border-color:var(--bad)}
+.fb small{display:block;color:var(--muted);margin-top:4px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.end{text-align:center;color:var(--muted)}
+.code{font:clamp(11px,2.9vw,14px)/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:10px -6px 0;overflow-x:auto;white-space:pre;tab-size:2}
+.code-note{font-size:.8rem;color:var(--muted);margin:8px 0 0}
+.link{background:none;border:none;color:var(--muted);text-decoration:underline;padding:4px;font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+<h1>SQL in a Real Replication</h1>
+<p class="sub">Module 6 of the SQL course, read aloud. Two right in a row moves you up a level, and a miss moves you down one. Missed ideas come back later at an easier level. Tap a question to hear it again, and tap your answer anytime. When a question says “look at the code on the screen”, the code is in the grey box.</p>
+<div class="bar">
+  <button class="primary" id="go">▶ Start</button>
+  <button id="stop">■ Stop</button>
+  <select id="rate" aria-label="Speed"><option value="0.85">Slow</option><option value="1" selected>Normal</option><option value="1.2">Fast</option></select>
+  <label class="auto"><input type="checkbox" id="auto" checked> Hands-free</label>
+</div>
+<div class="stats">
+  <span>Level: <strong id="lvlName"></strong><span class="lvl" id="lvlBars"><i></i><i></i><i></i></span></span>
+  <span id="score"></span>
+  <span id="mastered"></span>
+</div>
+<div class="mastery" id="mastery" title="Mastery per concept: darker means you've answered a harder level correctly"></div>
+<div id="list"></div>
+<p class="end"><button class="link" id="reset">Reset progress</button></p>
+</main>
+<script>
+const QUIZ = {"book": "SQL in a Real Replication", "levels": {"1": "Warm-up", "2": "Core", "3": "Deep"}, "concepts": [{"id": "c01", "title": "Filter order and the threshold", "levels": {"1": {"q": "Look at the code on the screen. Worth is stored in millions of dollars. What does the number one thousand in the first line stand for?", "opts": ["One billion dollars, the line a person must reach to count as a billionaire", "One thousand dollars, a floor that removes rows with placeholder worth values", "The top one thousand people by worth on each snapshot date", "One trillion dollars, since the later tables report their totals in billions"], "answer": 0, "why": "Worth is in millions, so one thousand million is one billion dollars. The later tables divide by one thousand to report billions.", "code": "WHERE forbes_worth >= 1000\n  AND (state = 'California'\n       OR forbes_id IN (\n            SELECT forbes_id\n            FROM rtb_residency_overrides\n            WHERE rule = 'include'))", "lang": "sql"}, "2": {"q": "Block one joins the threshold, the state test and the exclude test with AND. If you reorder the three, what happens to the result?", "opts": ["Rows are filtered in sequence, so putting the cheapest test first changes which rows survive", "The exclude test must come last, or excluded people slip back in through the state test", "Nothing changes. They form one true or false test per row, so their order does not matter", "The threshold must come first, or people below one billion pass through the include list"], "answer": 2, "why": "A where clause is a single boolean expression evaluated per row. Order among AND terms changes nothing. Parentheses around the OR are what matter."}, "3": {"q": "Look at the code on the screen. The parentheses around the OR are gone. Which rows does this version wrongly keep?", "opts": ["Californians worth less than one billion, because OR is evaluated before AND", "Override includes worth less than one billion dollars, because AND binds before OR", "None. AND and OR have equal precedence, so SQL reads the conditions left to right", "Rows with a null state, because removing the parentheses makes the state test unknown"], "answer": 1, "why": "AND binds more tightly than OR, so the clause splits into worth and California, or the include list. Anyone on the include list now skips the threshold.", "code": "WHERE forbes_worth >= 1000\n  AND state = 'California'\n  OR forbes_id IN (\n       SELECT forbes_id\n       FROM rtb_residency_overrides\n       WHERE rule = 'include')", "lang": "sql"}}}, {"id": "c02", "title": "Residency overrides", "levels": {"1": {"q": "What does a row with the rule include in the residency override table do?", "opts": ["It adds that person to the panel on dates when Forbes left them out", "It keeps that person even when their worth falls below one billion dollars", "It marks that person's state field as checked, so the query trusts it", "It counts that person as Californian, whatever their state field says"], "answer": 3, "why": "Include means count as Californian regardless of the state on file. The threshold still applies, and no rows are added to the panel."}, "2": {"q": "Look at the code on the screen. Suppose the override file gains a row with a blank id, loaded as null, and the rule exclude. What happens to block one's result?", "opts": ["It keeps no rows at all, because NOT IN with a null in its list is never true", "Nothing changes, because NOT IN skips null values in its list the way SUM does", "It keeps every row, because a null in the list makes the whole condition true", "It drops only people whose own id is null, and the panel has none of those"], "answer": 0, "why": "For a listed id NOT IN is false, and for every other id it is unknown, because the null might be that id. The where clause keeps nothing. That is why the loader refuses rows without an id.", "code": "AND forbes_id NOT IN (\n      SELECT forbes_id\n      FROM rtb_residency_overrides\n      WHERE rule = 'exclude')", "lang": "sql"}, "3": {"q": "Why does the real project keep the override ids in a separate table instead of typing them into the SQL?", "opts": ["A subquery on a table runs faster than a typed list once the list has more than a few ids", "SQLite limits how many literal values an IN list may hold", "The ids come from confidential material, so the list stays private and the query public", "R and Python read typed lists differently, so a table keeps the two languages in step"], "answer": 2, "why": "The query is public code, but the override list comes from the authors' confidential material. With the ids in a gitignored table, changing the list never touches the SQL."}}}, {"id": "c03", "title": "Snapshot selection by exact date", "levels": {"1": {"q": "Look at the code on the screen. Why is the last date January 1, 2026, rather than December 31, 2025?", "opts": ["The paper's 2025 list is dated at the start of the tax year, which begins on January 1", "The data have no December 31, 2025 snapshot, so January 1 stands in for the 2025 list", "December 31, 2025 is one of the three dates the query leaves out of the daily series", "Forbes publishes its year-end list on the first day of the following year"], "answer": 1, "why": "The snapshots jump from December 30, 2025 to January 1, 2026. So the January 1 list plays the role of the 2025 year end.", "code": "WHERE ca.date IN (\n  '2019-12-31', '2020-12-31', '2021-12-31',\n  '2022-12-31', '2023-12-31', '2024-12-31',\n  '2026-01-01'\n)", "lang": "sql"}, "2": {"q": "Dates are stored as text, like 2019 dash 12 dash 31. Why does that format make comparing and sorting the text safe?", "opts": ["SQLite turns any text that looks like a date into a date before it compares", "The dashes tell SQLite to compare each part as a separate number", "Text sorts like dates in any format, as long as the separator stays the same", "Year, month, day order with zero padding makes text order the same as date order"], "answer": 3, "why": "With the year first and two-digit months and days, comparing the text character by character gives the same order as the calendar. SQLite has no separate date type."}, "3": {"q": "Look at the code on the screen. A colleague wants to pick each year's last snapshot like this, instead of typing the dates. What would it pick for 2025?", "opts": ["December 30, 2025, a day earlier than the date the authors' 2025 list uses", "January 1, 2026, the same date that the typed list uses", "December 31, 2025, because MAX fills in the missing year-end date", "Nothing for 2025, because GROUP BY drops a year that has no December 31 row"], "answer": 0, "why": "Grouping by the first four characters puts January 1, 2026 in the year 2026. The latest 2025 date is December 30, so the lists would no longer match the authors'.", "code": "SELECT MAX(date) AS snapshot\nFROM rtb_ca_all\nGROUP BY substr(date, 1, 4);", "lang": "sql"}}}, {"id": "c04", "title": "One long table versus seven", "levels": {"1": {"q": "Block two puts seven year-end lists into one table. What tells the lists apart?", "opts": ["A list number column that block two adds to every row", "The sec cik column, which is filled in only on the 2026 list", "The date column. Each list is the set of rows with one of the seven dates", "The row order. Each list starts where the previous date's rows end"], "answer": 2, "why": "The long table keeps a date column instead of seven separate tables. Each old sheet is a where date equals slice."}, "2": {"q": "Look at the code on the screen. In the authors' workflow, what did a query like this one replace?", "opts": ["The R code that computed the 2022 row of the daily aggregate table, one date at a time", "One of seven spreadsheet sheets, each written from a filtered, sorted data frame", "A join between the 2022 list and the C I K table", "The step that removed people below one billion dollars in 2022"], "answer": 1, "why": "The authors filtered one date at a time, sorted by worth, and wrote seven sheets. With one long table, each sheet is just this slice.", "code": "SELECT forbes_id, forbes_name, forbes_worth\nFROM rtb_ca_eoy\nWHERE date = '2022-12-31'\nORDER BY forbes_worth DESC;", "lang": "sql"}, "3": {"q": "Next year the paper adds a 2026 year-end list. Given the long-table design, what changes in the SQL?", "opts": ["A new create table block for the 2026 list, copied from the others", "A new column in the year-end table that holds the 2026 worth", "Nothing at all, because block two picks every December 31 by itself", "One more date in block two's IN list, and no new block of code"], "answer": 3, "why": "The seven lists differ only in their date, so a new list is a new value in the IN list. Block two does not find dates by itself, it reads the typed list."}}}, {"id": "c05", "title": "CREATE TABLE AS and DROP TABLE IF EXISTS", "levels": {"1": {"q": "Look at the code on the screen. What does the first line buy you?", "opts": ["The file can run twice. Each run removes the old table before rebuilding it", "It deletes the rows of rtb all combined that failed the threshold on the last run", "It stops the block if the table already exists, so old results stay safe", "It frees memory before the create statement, which matters for large tables"], "answer": 0, "why": "Drop table if exists makes the file idempotent. Without it, a second run fails because the table already exists.", "code": "DROP TABLE IF EXISTS rtb_ca_all;\nCREATE TABLE rtb_ca_all AS\nSELECT date, forbes_id, forbes_worth\nFROM rtb_all_combined\nWHERE forbes_worth >= 1000;", "lang": "sql"}, "2": {"q": "What is the difference between a plain select and create table as select, with the same query?", "opts": ["The second runs faster, because SQLite can skip formatting the output for the screen", "The first can use group by and joins, while create table as cannot", "The second keeps the order by, while a plain select may ignore it", "It stores the result as a table, so later blocks and other languages can read it"], "answer": 3, "why": "Create table as runs the same select and saves the result. Later blocks read it, and R and Python read it back with one shared select."}, "3": {"q": "Look at the code on the screen. Someone runs this file a second time on the same database. What happens?", "opts": ["It replaces the old table silently, because create table as overwrites by default", "It appends a second copy of every row, so the table doubles in size", "It stops with an error, because the table rtb ca all already exists", "It runs, but the index is built twice, which slows down later queries"], "answer": 2, "why": "Create table fails if the name is taken. That is what the drop table if exists line in the real file prevents.", "code": "CREATE TABLE rtb_ca_all AS\nSELECT * FROM rtb_all_combined\nWHERE forbes_worth >= 1000;\n\nCREATE INDEX idx_rtb_ca_all_date\n  ON rtb_ca_all (date);", "lang": "sql"}}}, {"id": "c06", "title": "A total row with UNION ALL", "levels": {"1": {"q": "In block three, what does UNION ALL do?", "opts": ["It joins the Total row to each industry row, so every row carries the grand total", "It stacks the one-row Total summary under the per-industry rows", "It removes duplicate industry rows before the Total row is added", "It adds a Total column to the right of the industry columns"], "answer": 1, "why": "Union all stacks two results with the same columns, keeping every row. Plain union would also remove duplicates."}, "2": {"q": "Look at the code on the screen. What does the empty OVER clause make this sum add up?", "opts": ["The grand total over every row of the C T E, the same on each row", "Worth within the current industry, so every fraction comes out as one", "Worth over the rows above the current one, which gives a running total", "Worth over every date in the panel, not only January 1, 2026"], "answer": 0, "why": "With nothing inside the over clause, the window is the whole result. It is the SQL form of an ungrouped mutate after summarise.", "code": "SELECT\n  industries,\n  forbes_worth,\n  forbes_worth / SUM(forbes_worth) OVER ()\n    AS fraction_forbes_worth\nFROM by_industry;", "lang": "sql"}, "3": {"q": "Why does the final select of block three sort first by the comparison industries equals Total?", "opts": ["It filters the Total row out before sorting and adds it back at the end", "It sorts alphabetically, and Total comes after every industry name", "It makes SQLite sort the two halves of the union separately", "It is zero for industry rows and one for Total, so Total sorts after every industry"], "answer": 3, "why": "A comparison is zero or one. Without it, Total, whose share is one, would sort first under the share-descending key."}}}, {"id": "c07", "title": "Conditional sums", "levels": {"1": {"q": "Look at the code on the screen. The CASE has no ELSE. What does it return for everyone outside the four ids?", "opts": ["Zero, because a CASE with no ELSE defaults to zero inside a sum", "An error, because every CASE expression needs an ELSE branch", "Null, which SUM then skips, so only the four worths are added", "The person's worth, because an unmatched CASE falls through to the THEN value"], "answer": 2, "why": "A case with no else returns null when nothing matches. Sum skips nulls, so the result is the four people's total.", "code": "SUM(CASE\n      WHEN forbes_id IN ('marlo-zanderfell',\n                         'calla-vantongeren',\n                         'xavi-juniper',\n                         'quill-silverbrook')\n      THEN forbes_worth\n    END)", "lang": "sql"}, "2": {"q": "What R idiom does block four's top four column replace?", "opts": ["Filtering to the four people first, summarising, then joining back by date", "Subsetting the worth vector inside the sum, by whether the id is one of the four", "An if else over the whole data frame, before grouping by date", "Ranking people by worth each day and keeping the first four"], "answer": 1, "why": "The authors wrote sum of worth where the id is in the top four ids. A conditional sum does the same thing inside one group by."}, "3": {"q": "Look at the code on the screen. On a date when none of the four ids appears, what would this column be without COALESCE?", "opts": ["Null, because the sum of nothing but nulls is null", "Zero, because SUM over no matching rows is always zero in SQLite", "The date would be missing, because its group would have no rows", "Zero, because dividing by one thousand point zero forces a number"], "answer": 0, "why": "The date's group still has other billionaires, but the case gives null for all of them. Coalesce turns that null into zero, as R would.", "code": "COALESCE(SUM(CASE\n  WHEN forbes_id IN ('marlo-zanderfell',\n                     'calla-vantongeren',\n                     'xavi-juniper',\n                     'quill-silverbrook')\n  THEN forbes_worth\nEND), 0) / 1000.0 AS forbes_worth_top4", "lang": "sql"}}}, {"id": "c08", "title": "LEFT JOIN and a null sec_cik", "levels": {"1": {"q": "On the year-end list for December 31, 2021, every sec cik is null. Why?", "opts": ["Nobody on the 2021 list had filed with the S E C by then", "The C I K table has no rows for the people on the 2021 list", "Block one drops the C I K column for every date before 2026", "The join only looks up C I Ks on the January 1, 2026 rows"], "answer": 3, "why": "The date test sits in the on clause, so earlier rows never match, and the left join keeps them with a null. Many of those people do have C I K rows."}, "2": {"q": "Look at the code on the screen. The date test moved from the ON clause into WHERE. What happens to the year-end table?", "opts": ["Nothing changes, because ON and WHERE conditions are interchangeable in a join", "All seven lists survive, but every sec cik becomes null", "Only the 2026 list survives, because WHERE removes the other six lists after the join", "All seven lists survive, and every row gets a C I K, not just the 2026 list"], "answer": 2, "why": "Where filters after the join, so it drops every row not dated January 1, 2026. On and where are only interchangeable for an inner join.", "code": "FROM rtb_ca_all ca\nLEFT JOIN rtb_ca_cik cik\n  ON cik.forbes_id = ca.forbes_id\nWHERE ca.date IN ('2019-12-31', ...,\n                  '2026-01-01')\n  AND ca.date = '2026-01-01'", "lang": "sql"}, "3": {"q": "On the 2026 list, one person's sec cik is null. What can you conclude?", "opts": ["They are not American citizens, because only citizens are given a C I K", "They have no C I K, from a null crosswalk value or a missing crosswalk row", "They are on the list only through the override table, which skips the lookup", "Their worth fell below one billion dollars on that date"], "answer": 1, "why": "On the 2026 rows the lookup does happen, so null means no C I K was found. The table alone cannot tell a null crosswalk value from a missing row."}}}, {"id": "c09", "title": "Null in SUM versus COUNT", "levels": {"1": {"q": "Look at the code on the screen. The column holds five, null and seven. What are the three results?", "opts": ["Three, two and twelve", "Three, three and twelve", "Two, two and twelve", "Three, two and null, because one of the values is missing"], "answer": 0, "why": "Count star counts rows, count of a column counts non-null values, and sum skips the null.", "code": "SELECT COUNT(*),\n       COUNT(forbes_public_worth),\n       SUM(forbes_public_worth)\nFROM t;\n-- forbes_public_worth holds 5, NULL, 7", "lang": "sql"}, "2": {"q": "Why does block four count billionaires with count star rather than count of public worth?", "opts": ["Count star is faster, and the two give the same number after block one", "Count of a column counts distinct values, which would merge people with equal worth", "Count star skips rows with a null worth, which block four needs", "Only count star counts every billionaire. The other counts only people with a split"], "answer": 3, "why": "Count of a column skips nulls. Block one already dropped null worths, so every remaining row is a billionaire, and count star counts them all."}, "3": {"q": "Look at the code on the screen. This version drops COALESCE. What does the Sports row show, and how does that compare with R?", "opts": ["Zero, the same as R, because SUM skips the nulls", "Null, the same as R, because R's sum also returns N A for an all-missing group", "Null, while R's sum with N A removed would give zero for the all-missing group", "The Sports row disappears, because GROUP BY drops groups whose values are all null"], "answer": 2, "why": "Every public worth in Sports is null, so the SQL sum is null. R's sum with n a dot r m equals true returns zero, which is why the file wraps sums in coalesce.", "code": "SELECT industries,\n       SUM(forbes_public_worth) / 1000.0\n         AS forbes_public_worth\nFROM list_2026\nGROUP BY industries;", "lang": "sql"}}}, {"id": "c10", "title": "Excluding dates with NOT IN", "levels": {"1": {"q": "What does block four's where clause do with July 18, 2022, and March 29 and 30, 2026?", "opts": ["It keeps only those three dates, which are the paper's event dates", "It leaves those three snapshot dates out of the daily table", "It sets the totals on those dates to zero, so the series has no gaps", "It moves those snapshots to the nearest neighbouring date"], "answer": 1, "why": "Not in with a typed list drops exactly those three dates. The reproduction follows the authors' choice."}, "2": {"q": "Look at the code on the screen. Block one warned that NOT IN can empty a result. Why is it safe here?", "opts": ["The list is typed into the query, so it cannot pick up a null by accident", "NOT IN is only dangerous on text columns, and these are dates", "GROUP BY runs first, so a null cannot reach the where clause", "SQLite removes nulls from a NOT IN list when the list is typed in"], "answer": 0, "why": "The danger comes from a subquery that returns a null. Three typed dates contain no null. Dates are text here anyway, and where runs before group by.", "code": "SELECT date, COUNT(*) AS n_billionaires\nFROM rtb_ca_all\nWHERE date NOT IN ('2022-07-18',\n                   '2026-03-29',\n                   '2026-03-30')\nGROUP BY date\nORDER BY date;", "lang": "sql"}, "3": {"q": "A learner replaces the not in list with three not-equal tests joined by OR. What does that version keep?", "opts": ["Every date except the three, exactly like the not in list", "No dates at all, because no date can differ from all three at once", "Only the three dates, because OR reverses the meaning of not equal", "Every date, because any date differs from at least one of the three"], "answer": 3, "why": "A date equal to one of the three still differs from the other two, so at least one test is true. The correct rewrite joins the three tests with AND."}}}, {"id": "c11", "title": "Why no dot-commands", "levels": {"1": {"q": "Look at the code on the screen. Why is this fine at the sqlite3 prompt but not in the shared SQL file?", "opts": ["LIMIT is not allowed in a file that Python runs with execute script", "Dot-commands work everywhere, but they slow down a file run from a script", "They are sqlite3 shell commands, which Python and R cannot run", "Select star is banned in shared files, because column order can change"], "answer": 2, "why": "Dot headers and dot mode belong to the sqlite3 program, not to SQL. Execute script and D B I only accept SQL.", "code": ".headers on\n.mode column\n\nSELECT * FROM rtb_ca_aggregate LIMIT 5;", "lang": "sql"}, "2": {"q": "How does R run the shared SQL file, and why does that matter for dot-commands?", "opts": ["It hands the whole file to the sqlite3 program, so dot-commands would work", "It sends each statement through D B I, which only understands SQL", "It translates the SQL into dplyr code first, and dot-commands have no dplyr version", "It calls Python's execute script, so Python's rules apply"], "answer": 1, "why": "The R runner splits the text at each semicolon that is real code and calls D B I db execute on each statement. A dot-command would be sent to SQLite as SQL and fail."}, "3": {"q": "Look at the code on the screen. Python runs this file with execute script. What happens?", "opts": ["The drop runs, then execute script stops with a syntax error at the dot-command", "Execute script skips the unknown line and builds the table as usual", "Nothing runs, because execute script checks the whole file before running any of it", "The table is built, and the timer prints how long each statement took"], "answer": 0, "why": "Execute script runs statements in order and stops at the first error. The drop has already run, so the table is gone and not rebuilt.", "code": "DROP TABLE IF EXISTS rtb_ca_all;\n.timer on\nCREATE TABLE rtb_ca_all AS\nSELECT * FROM rtb_all_combined\nWHERE forbes_worth >= 1000;", "lang": "sql"}}}, {"id": "c12", "title": "Checking and vintage gaps", "levels": {"1": {"q": "How does the checker compare your year-end lists with the authors' sheets?", "opts": ["It compares the two files line by line, after sorting both of them by worth descending", "It compares the total worth of each list, within one in a million", "It hashes each file and checks that the two hashes are equal", "It aligns rows on forbes id within each date, then compares keys and cells"], "answer": 3, "why": "Aligning on a key makes the check immune to row order and number formatting. Then rows on one side only, counts, and each cell are compared."}, "2": {"q": "Look at the code on the screen. Why compare the numbers within a tolerance rather than exactly?", "opts": ["The authors' sheet rounds every value to six decimal places", "Floating-point numbers cannot be compared with an equals sign at all", "Sums can differ in their last digits when programs add in a different order", "The tolerance absorbs small vintage gaps, such as one missing person"], "answer": 2, "why": "The real differences were about one in a trillion, from the order of addition. A missing person changes counts and fails no matter what the tolerance is.", "code": "TOL = 1e-6\nmaxd = 0.0\nfor c in num_cols:\n    diff = abs(float(ours[c]) - float(key[c]))\n    maxd = max(maxd, diff)\nok = maxd <= TOL and n_ours == n_key", "lang": "python"}, "3": {"q": "Your daily table has twenty-five dates the authors' sheet lacks, and every shared date matches. How should you report it?", "opts": ["As a failure, because a reproduction must have exactly the same rows", "As a vintage gap: the data and the sheet were saved at different times, and shared dates agree", "As a logic error in the date filter, since the authors' code skips those dates", "As unexplained, because a vintage gap needs a different code version, not a different data file"], "answer": 1, "why": "You can name the difference, extra dates from a later data file, and everything shared agrees. That is a vintage gap. Unexplained is for differences you cannot name."}}}]};
+const C = QUIZ.concepts, LV = QUIZ.levels, L = "ABCD", AUDIO = "audio/", synth = window.speechSynthesis;
+const $ = id => document.getElementById(id), list = $('list'), rate = $('rate');
+const REVIEW_GAP = 3;   // a missed concept comes back after this many other questions
+
+/* ---------- state (persisted) ---------- */
+const fresh = () => ({ level: 2, streak: 0, n: 0, right: 0, mastery: {}, used: {}, due: [] });
+let S = fresh(), db = null, current = null, seq = 0;
+function save(){
+  try{ localStorage.setItem('sql06-state', JSON.stringify(S)); }catch(e){}
+  if(db) db.doc('state/progress').set({ ...S, updatedAt: new Date().toISOString() }).catch(()=>{});
+}
+async function load(){
+  try{ const s = localStorage.getItem('sql06-state'); if(s) S = { ...fresh(), ...JSON.parse(s) }; }catch(e){}
+  try{ db = window.claude ? await claude.use("db") : null; }catch(e){ db = null; }
+  if(db){ try{ const snap = await db.doc('state/progress').get(); if(snap.exists){ const d = JSON.parse(JSON.stringify(snap.data())); if((d.n||0) >= S.n) S = { ...fresh(), ...d }; } }catch(e){} }
+  stats(); $('go').textContent = S.n ? '▶ Continue' : '▶ Start';
+}
+
+/* ---------- adaptive choice ---------- */
+function pickLevel(cid, want){
+  const used = S.used[cid] || [];
+  for(const d of [0, -1, 1, -2, 2]){ const l = want + d; if(l >= 1 && l <= 3 && !used.includes(l)) return l; }
+  return want;
+}
+function nextQuestion(){
+  const due = S.due.find(d => d.at <= S.n);
+  if(due){ S.due = S.due.filter(d => d !== due); return { cid: due.cid, level: due.level, review: true }; }
+  const unseen = C.find(c => S.mastery[c.id] == null && !S.due.some(d => d.cid === c.id));
+  if(unseen) return { cid: unseen.id, level: pickLevel(unseen.id, S.level) };
+  const todo = C.filter(c => (S.mastery[c.id] || 0) < 3 && !S.due.some(d => d.cid === c.id))
+                .sort((a, b) => (S.mastery[a.id] || 0) - (S.mastery[b.id] || 0));
+  if(todo.length){ const c = todo[0]; return { cid: c.id, level: pickLevel(c.id, Math.min(3, Math.max(S.level, (S.mastery[c.id] || 0) + 1))) }; }
+  if(S.due.length){ const d = S.due.shift(); return { cid: d.cid, level: d.level, review: true }; }
+  return null;
+}
+function record(item, ok){
+  const { cid, level } = item;
+  S.n++; S.used[cid] = [...new Set([...(S.used[cid] || []), level])];
+  if(ok){
+    S.right++; S.mastery[cid] = Math.max(S.mastery[cid] || 0, level);
+    if(++S.streak >= 2 && S.level < 3){ S.level++; S.streak = 0; }
+  } else {
+    S.streak = 0; S.level = Math.max(1, S.level - 1);
+    if(S.mastery[cid] == null) S.mastery[cid] = 0;
+    S.due.push({ cid, level: Math.max(1, level - 1), at: S.n + REVIEW_GAP });
+  }
+  save(); stats();
+}
+
+/* ---------- display ---------- */
+function stats(){
+  $('lvlName').textContent = LV[S.level];
+  [...$('lvlBars').children].forEach((b, i) => b.classList.toggle('on', i < S.level));
+  $('score').textContent = S.n ? `${S.right} / ${S.n} correct` : '';
+  const m = C.filter(c => (S.mastery[c.id] || 0) >= 3).length;
+  $('mastered').textContent = `${m} / ${C.length} ideas mastered`;
+  $('mastery').style.setProperty('--n', C.length);
+  $('mastery').innerHTML = C.map(c => `<span data-m="${S.mastery[c.id] || 0}" title="${c.title}"></span>`).join('');
+}
+function el(tag, cls, txt){ const e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; }
+function showNext(){
+  document.querySelectorAll('.row button.primary').forEach(b => b.remove());
+  const item = nextQuestion();
+  if(!item){
+    const d = el('section', 'q'); d.append(el('h2', null, 'You have mastered every idea at the Deep level.'), el('div', null, 'Reset progress to start over.'));
+    list.append(d); d.scrollIntoView({ behavior: 'smooth' }); play([{ file: null, text: 'You have mastered every idea in this module at the deep level. Well done.' }]); return;
+  }
+  const c = C.find(x => x.id === item.cid), q = c.levels[item.level], id = 'card' + (++seq);
+  item.el = id; current = item;
+  const d = el('section', 'q'); d.id = id;
+  d.append(el('span', 'tag' + (item.review ? ' review' : ''), item.review ? `Review · ${LV[item.level]}` : LV[item.level]));
+  const head = el('div', 'qhead'); head.title = 'Tap to hear it again';
+  head.append(el('h2', null, c.title), el('div', null, q.q)); head.onclick = () => read(item);
+  const code = q.code ? el('pre', 'code', q.code) : null; if(code) code.dataset.lang = q.lang || '';
+  const box = el('div', 'opts'), fb = el('div', 'fb'); fb.hidden = true;
+  q.opts.forEach((o, j) => { const b = el('button', 'opt'); b.append(el('b', null, L[j]), el('span', null, o)); b.onclick = () => choose(item, j, box, fb); box.append(b); });
+  const row = el('div', 'row'), again = el('button', null, '🔊 Read again'); again.onclick = () => read(item); row.append(again);
+  d.append(head, ...(code ? [code] : []), box, fb, row); list.append(d);
+  item.row = row; read(item);
+}
+function choose(item, j, box, fb){
+  if(item.answered) return; item.answered = true;
+  const c = C.find(x => x.id === item.cid), q = c.levels[item.level], ok = j === q.answer;
+  const before = S.level; record(item, ok);
+  [...box.children].forEach((b, k) => { b.disabled = true; if(k === q.answer) b.classList.add('right'); else if(k === j) b.classList.add('wrong'); });
+  const lead = ok ? 'Correct. ' : `Not quite. The answer is ${L[q.answer]}. `;
+  fb.className = 'fb' + (ok ? '' : ' miss'); fb.hidden = false; fb.textContent = (ok ? '✓ ' : '✗ ') + lead + q.why;
+  const note = S.level > before ? `Moving up to ${LV[S.level]}.` : S.level < before ? `Easing down to ${LV[S.level]}.` : ok ? '' : `This idea will come back in a few questions.`;
+  if(note) fb.append(el('small', null, note));
+  document.getElementById(item.el).classList.add('done');
+  const nx = el('button', 'primary', 'Next question ▶'); nx.onclick = () => { nx.remove(); stop(); showNext(); }; item.row.append(nx);
+  if(db) db.collection('attempts').add({ concept: c.id, topic: c.title, level: item.level, review: !!item.review, chose: q.opts[j], correct: ok, at: new Date().toISOString() }).catch(()=>{});
+  const k = `${item.cid}-L${item.level}`;
+  play([{ file: `${k}-${ok ? 'right' : 'wrong'}.mp3`, text: lead + q.why }], () => { if($('auto').checked && nx.isConnected){ nx.remove(); showNext(); } });
+}
+function read(item){
+  const c = C.find(x => x.id === item.cid), q = c.levels[item.level], k = `${item.cid}-L${item.level}`;
+  play([{ file: `${k}-stem.mp3`, text: q.code ? q.q : `${c.title}. ${q.q}`, el: item.el },  // code is shown, never spoken
+        ...q.opts.map((o, j) => ({ file: `${k}-opt${L[j]}.mp3`, text: `Option ${L[j]}. ${o}.`, el: item.el }))]);
+}
+
+/* ---------- playback: recorded MP3 (audiobook voice), falling back to browser speech ---------- */
+let queue = [], cur = null, gen = 0, onDone = null;
+function stop(){ gen++; queue = []; onDone = null; if(cur){ cur.pause(); cur = null; } if(synth) synth.cancel(); mark(null); }
+function play(items, done){ stop(); queue = items.slice(); onDone = done || null; step(gen); }
+function step(g){
+  if(g !== gen) return;
+  const it = queue.shift();
+  if(!it){ mark(null); const f = onDone; onDone = null; if(f) f(); return; }
+  mark(it.el || null);
+  const next = () => { if(g === gen) step(g); };
+  let fell = false;
+  const speak = () => { if(fell || g !== gen) return; fell = true; cur = null;
+    if(!synth){ next(); return; }
+    const u = new SpeechSynthesisUtterance(it.text); u.rate = +rate.value; u.lang = 'en-US'; u.onend = next; u.onerror = next; synth.speak(u); };
+  if(!it.file){ speak(); return; }
+  const a = new Audio(AUDIO + it.file); a.playbackRate = +rate.value; cur = a;
+  a.onended = next; a.onerror = speak; a.play().catch(speak);
+}
+function mark(id){ document.querySelectorAll('.q').forEach(e => e.classList.remove('speaking')); if(id){ const e = $(id); if(e){ e.classList.add('speaking'); e.scrollIntoView({ behavior: 'smooth', block: 'center' }); } } }
+
+$('go').onclick = () => { if(current && !current.answered) read(current); else showNext(); $('go').textContent = '▶ Resume'; };
+$('stop').onclick = stop;
+rate.onchange = () => { if(cur) cur.playbackRate = +rate.value; };
+$('reset').onclick = () => { if(!confirm('Reset all progress for this quiz?')) return; stop(); S = fresh(); current = null; list.innerHTML = ''; save(); stats(); $('go').textContent = '▶ Start'; };
+stats(); load();
+</script>
+</body>
+</html>

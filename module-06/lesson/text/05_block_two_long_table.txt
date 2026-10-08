@@ -1,0 +1,17 @@
+Block two: seven year-end lists in one long table.
+
+The second block builds rtb ca e o y. E o y for end of year. I'll call it the year-end table. It holds the California list on each of seven dates: December 31 of 2019 through 2024, and January 1, 2026, which stands in for 2025.
+
+The authors' R code filtered one date at a time, sorted by worth from largest to smallest, and wrote seven data frames to seven sheets of a spreadsheet. The SQL keeps one table with a date column instead. Each old sheet becomes a slice: where date equals one value. And adding a new year means adding one more date to a list, not copying another block of code. That is the long table idea. One table and a column that says which list a row belongs to, rather than seven tables that differ only in their names.
+
+The block reads from the all table, with the short alias c a, and keeps rows whose date is in a list of the seven dates. That is in, with literal values in the parentheses, rather than a subquery.
+
+Then comes the interesting part. The last list, January 1, 2026, gets one extra column: the S E C identifier, called sec cik. The block adds it with a left join to the C I K table. The join condition has two parts: the forbes ids match, and the date of the row is January 1, 2026. Both parts sit in the on clause of the join, not in the where clause.
+
+Why does that matter? A left join keeps every row of the left table, whether or not it finds a match. With the date test inside the on clause, a row from 2019 simply finds no match, so it is kept with sec cik set to null. Now imagine moving the date test down into the where clause. Where runs after the join, and it filters rows. It would throw away every row that is not dated January 1, 2026. Six of the seven lists would vanish. Same words, different place, very different table. In R terms, the right version is a left join followed by a mutate that blanks the C I K on the other dates, not a filter.
+
+This also tells you what a null sec cik means, and it means two things. On the six earlier lists, it means the id was never looked up. On the 2026 list, it means the person has no C I K, either because their crosswalk row holds a null, or because they have no crosswalk row at all. The table alone cannot tell the two apart. You need the date.
+
+Finally, the order by. Rows are sorted by date, then by worth from largest to smallest, then by forbes id. The first two reproduce the order of the authors' sheets. The forbes id is a tie-breaker. If two people have the same worth on the same date, the id decides, so the order is the same every time the file runs. A reproduction that compares files needs that.
+
+This block exercises module one's where and module two's left join. The new idea is the extra condition inside the on clause.

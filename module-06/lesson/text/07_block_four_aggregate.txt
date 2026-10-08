@@ -1,0 +1,17 @@
+Block four: the daily aggregate.
+
+The fourth block builds the aggregate table: one row per date, with four numbers. How many California billionaires there were that day. Their total worth. The worth of the top four. And their total private worth. All money in billions.
+
+The structure is module three: select from the all table, group by date, order by date. Count star gives the number of billionaires. That count is right because block one already dropped any row with a null worth. Every remaining row is a real billionaire on a real date.
+
+The top four column is the new idea. The paper singles out four people, the four largest California fortunes. In the course data, they are four invented ids. The authors' R code got their total by subsetting the worth vector inside the sum, which reads naturally in R: sum of worth, where id is in the top four ids.
+
+SQL does it with a conditional sum, the sum of case when pattern from module one. Inside the sum there is a case expression. When the forbes id is in the list of four ids, return the worth. There is no else branch. A case with no else returns null for every other row. Then the sum skips the nulls, so it adds up only the four. You could write else zero and get the same total. Leaving the else out makes the intent explicit: only these rows count.
+
+Then the whole sum is wrapped in coalesce with zero, and divided by one thousand point zero. Why coalesce? On a date when none of the four is in the data, every value inside the sum is null, and the sum of nothing but nulls is null, not zero. The authors' R code would give zero, so the SQL says zero too. The same wrapping appears on total worth and on private worth.
+
+Next, the where clause. It says date not in a list of three dates: July 18, 2022, March 29, 2026, and March 30, 2026. The authors' code leaves those snapshots out of the daily series, so the reproduction does too. Note the contrast with block one. There, not in read its list from a table, and a null in the list would have emptied the result. Here the list is typed into the query. A typed list cannot contain a null by accident, so the trap does not apply.
+
+Last, the column order. The first four columns are the four columns of the authors' sheet, in the same order. Private worth comes last. The authors' current code computes it, but their saved sheet does not have it. Keep that small fact in mind. A column that the code makes and the sheet lacks is a clue that the code and the sheet come from different versions of the work. We will come back to that idea when we talk about checking.
+
+So block four is a plain group by, plus one conditional sum, plus a list of dates to skip. With that, the four tables are built.
