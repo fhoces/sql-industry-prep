@@ -61,14 +61,16 @@ One-page landscape reference card covering all five modules — execution-order 
 | **3** | [GROUP BY, HAVING, Conversion Funnels](module-03/) | Per-group metrics, compare-to-global, funnels, cohort retention | City dashboards, funnel analysis, cohort tables |
 | **4** | [Subqueries and CTEs](module-04/) | Scalar / table / correlated subqueries, multi-step CTEs | Each rider's first ride, multi-step funnel as CTE chain |
 | **5** | [Window Functions](module-05/) | OVER, PARTITION BY, ranking, LAG/LEAD, gaps and islands | Top-N per group, rolling avg, longest streak |
-| **6** | [SQL in a Real Replication](module-06/) | One step of a real pipeline: `CREATE TABLE AS`, override tables, a condition in `ON`, `UNION ALL` total rows, conditional sums, NULL semantics, checking against an answer key | Rebuild four tables of a real query on a synthetic billionaire panel; graded by `check.py` |
+| **6** | [SQL in a Real Replication](module-06/) | Real pipeline steps: `CREATE TABLE AS`, override tables, a condition in `ON`, `UNION ALL` total rows, conditional sums, NULL semantics, checking against an answer key; part 2: `ROW_NUMBER` to drop re-pasted rows, `NOT IN` in a CTE, yearly sums with `COALESCE`, rows picked by label | Rebuild eight tables of three real queries on synthetic data; graded by `check.py` |
 
 ## Module 6: a different data set, and two new artifact types
 
 Module 6 breaks the ride-sharing convention on purpose. It reproduces one real
 pipeline step (`01_rtb_ca.sql` in
 [fhoces/opa-prop40](https://github.com/fhoces/opa-prop40)) on a synthetic
-billionaire panel in the shape of the real one, built by
+billionaire panel in the shape of the real one, and in part 2 two more real
+files (`02_data_sec_agg.sql`, `03_ftb_b4a.sql`) on synthetic tables in the
+shape of the paper's public workbook, built by
 `Rscript data/build_rtb_sample.R` (it writes `data/rtb_sample.sqlite` and the
 reference results in `module-06/expected/`). Grade your answers with
 `python module-06/check.py module-06/exercise.sql` (needs pandas).
@@ -76,7 +78,7 @@ reference results in `module-06/expected/`). Grade your answers with
 It also introduces two artifact types that no earlier module has:
 
 - **`module-06/lesson/`**: an audio lesson, `sql-in-a-real-replication.m4b`
-  (chaptered, about 30 minutes, for Apple Books), narrated from the text
+  (chaptered, about 36 minutes, for Apple Books), narrated from the text
   sections in `lesson/text/`.
 - **`module-06/quiz/`**: a walking quiz, read aloud and adaptive, published
   as a claude.ai Artifact: https://claude.ai/artifact/HRQfx89mVuNM8puPenTE8R (private; the rebuild steps are in

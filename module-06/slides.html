@@ -117,7 +117,7 @@ shape**: 60 invented people, invented ids, random-walk fortunes.
 --
 
 The SQL is the **real file, nearly verbatim**. `module-06/solution.sql` differs only in its
-banner and in four invented ids.
+banner and in four invented ids. Part 2 adds two more real files from the paper's second step.
 
 ---
 
@@ -520,13 +520,226 @@ rows only in theirs, the largest absolute difference per numeric column (pass be
 cannot name it, it is unexplained. Never widen a tolerance to hide it.
 
 ---
+class: center, middle, inverse
+
+# Part 2: The Paper's Second Step
+
+Two more real files, `02_data_sec_agg.sql` and `03_ftb_b4a.sql`, run unchanged from R and Python
+
+---
+name: part2-main
+
+# Part 2: Spreadsheet to Tables, Through Shared SQL
+
+The real project reproduces step 2 from the **public** workbook. Two sheets are loaded
+into SQLite and reduced by shared SQL files that R and Python both run. Before the SQL
+they were R code.
+
+| Block | Table | From | What it holds |
+|---|---|---|---|
+| Q5 | `data_sec_all_kept` | `data_sec_all` | the rows that count: no excluded id, no re-pasted copy |
+| Q6 | `data_sec_agg` | Q5 | per year: `n` and 27 sums in $ billion |
+| Q7 | `ftb_b4a_year` | `ftb_b4a` | per tax year: brackets and four totals |
+| Q8 | `ftb_b4a_top` | `ftb_b4a` | the top-bracket rows, picked by label |
+
+--
+
+**`row_num`** is the row's position in the sheet. Q5 needs it to know which copy came
+first. Q8 is about **not** using it to choose rows.
+
+&lt;a href="#part2-dgp" class="nav-btn"&gt;How the tables are built →&lt;/a&gt;
+
+---
+name: q5-main
+
+# Q5: Keep the First Copy With ROW_NUMBER
+
+&lt;a class="write-ref" href="../module-05/slides.html#sample"&gt;M5&lt;/a&gt;
+*R idiom it replaces: `filter(!forbes_id %in% exclude)` then `filter(!duplicated(df[c("year", "forbes_id", "forbes_worth")]))`.*
+
+```sql
+CREATE TABLE data_sec_all_kept AS
+WITH kept AS (
+  SELECT *
+  FROM data_sec_all
+* WHERE forbes_id NOT IN (SELECT forbes_id FROM data_sec_agg_exclude)
+),
+numbered AS (
+  SELECT
+    kept.*,
+*   ROW_NUMBER() OVER (
+*     PARTITION BY year, forbes_id, forbes_worth
+*     ORDER BY row_num
+*   ) AS copy_num
+  FROM kept
+)
+SELECT *
+FROM numbered
+*WHERE copy_num = 1;
+```
+
+.small[
+Each group of rows with the same year, id and worth is numbered 1, 2, 3 in sheet order; `copy_num = 1` keeps the first, which is `!duplicated()`.
+]
+
+---
+
+# Q5: What Counts as a Copy
+
+The tail of the synthetic sheet: rows 228 to 231 are pasted again as 232 to 235. Two of the four pairs:
+
+.pull-left[
+.small[
+
+```sql
+SELECT row_num AS r, forbes_id, forbes_worth AS worth,
+       dividend,
+       ROW_NUMBER() OVER (
+         PARTITION BY year, forbes_id, forbes_worth
+         ORDER BY row_num) AS copy
+FROM data_sec_all
+WHERE row_num &gt;= 228
+  AND forbes_id IN ('rhea-vantongeren', 'tamsin-kettleby')
+ORDER BY forbes_id, r;
+```
+
+
+
+
+Table: 4 records
+
+|   r|forbes_id        |    worth| dividend| copy|
+|---:|:----------------|--------:|--------:|----:|
+| 231|rhea-vantongeren |       NA|   6.5242|    1|
+| 235|rhea-vantongeren |       NA|   6.5242|    2|
+| 229|tamsin-kettleby  | 2011.811|   7.6373|    1|
+| 233|tamsin-kettleby  | 2011.811|   8.1373|    2|
+]
+]
+
+.pull-right[
+.small[
+- **A copy with a re-typed `dividend`** (tamsin) still matches on the key, so it goes.
+- **A row with no worth** (rhea): `PARTITION BY` puts the two NULLs in one group, as `duplicated()` does with two `NA`s. A self-join on `a.forbes_worth = b.forbes_worth` misses it: `NULL = NULL` is not true.
+- **`SELECT DISTINCT *` removes nothing**: `row_num` differs on every row.
+- **Same id and year, different worth** (a 2022 pair, 8,000 and 5,256): two tracked fortunes, both kept.
+- **Filter order** does not matter: the key includes `forbes_id`, so an excluded id never shares a group.
+]
+]
+
+---
+name: q6-main
+
+# Q6: Yearly Sums, With COALESCE on Every Column
+
+&lt;a class="write-ref" href="../module-03/slides.html#sample"&gt;M3&lt;/a&gt;
+*R idiom it replaces: `group_by(year) |&gt; summarise(n = n(), across(cols, \(x) sum(x, na.rm = TRUE) / 1000))`.*
+
+```sql
+CREATE TABLE data_sec_agg AS
+SELECT
+  year,
+* COUNT(*)                                          AS n,
+  COALESCE(SUM(forbes_worth), 0) / 1000.0           AS forbes_worth,
+  COALESCE(SUM(forbes_public_worth), 0) / 1000.0    AS forbes_public_worth,
+* COALESCE(SUM(option_profit), 0) / 1000.0          AS option_profit,
+  ...                                               -- 27 sums in all
+FROM data_sec_all_kept
+GROUP BY year
+ORDER BY year;
+```
+
+.small[
+- **`COUNT(*)`**, not `COUNT(forbes_worth)`: one kept 2025 row has no worth, and `COUNT(col)` skips NULLs (29 instead of 30).
+- **`COALESCE`**: `option_profit` is NULL for every 2019 row, so the plain `SUM` is NULL; R's `sum(na.rm = TRUE)` is 0.
+- **`1000.0`**: integer by integer is integer division in SQLite (`7 / 2` is 3). The point zero keeps it floating point whatever the column type.
+]
+
+&lt;a href="#q6-detail" class="nav-btn"&gt;Full block →&lt;/a&gt;
+
+---
+name: q8-main
+
+# Q7 and Q8: Pick Rows by Label, Not Position
+
+&lt;a class="write-ref" href="../module-04/slides.html#sample"&gt;M4&lt;/a&gt;
+*R idiom it replaces: `sum(ca_agi[242:300], na.rm = TRUE)` and "the top bracket is row 300".*
+
+```sql
+CREATE TABLE ftb_b4a_top AS
+WITH labelled AS (
+  SELECT row_num, taxable_year,
+*        REPLACE(agic, '  ', ' ') AS agic,      -- '5,000,000  and  over'
+         all_returns, ca_agi, taxable_income, total_tax
+  FROM ftb_b4a
+* WHERE taxable_year IS NOT NULL
+)
+SELECT taxable_year,
+*      CASE agic
+*        WHEN '5,000,000 and over'     THEN '5m_plus'
+*        WHEN '5,000,000 to 9,999,999' THEN '5m_to_10m'
+*        WHEN '10,000,000 and over'    THEN '10m_plus'
+*      END AS bracket,
+       row_num, all_returns, ca_agi, taxable_income, total_tax
+FROM labelled
+*WHERE agic IN ('5,000,000 and over', '5,000,000 to 9,999,999', '10,000,000 and over')
+ORDER BY taxable_year, row_num;
+```
+
+.small[
+Q7 is the same table through `GROUP BY taxable_year`, after `WHERE taxable_year IS NOT NULL` drops a footnote row with no year.
+]
+
+---
+
+# Q8: Why Labels Survive a New Year and Positions Do Not
+
+.pull-left[
+.small[
+
+```sql
+SELECT taxable_year AS yr, bracket, row_num,
+       all_returns AS n_returns
+FROM ftb_b4a_top;
+```
+
+
+
+
+Table: 9 records
+
+|   yr|bracket   | row_num| n_returns|
+|----:|:---------|-------:|---------:|
+| 2016|5m_plus   |      61|      9511|
+| 2017|5m_plus   |      53|      8846|
+| 2018|5m_plus   |      45|      9338|
+| 2019|5m_plus   |      37|     10265|
+| 2020|5m_plus   |      29|      9137|
+| 2021|5m_to_10m |      20|      9298|
+| 2021|10m_plus  |      21|      5579|
+| 2022|5m_to_10m |      11|     10685|
+| 2022|10m_plus  |      12|      6411|
+]
+]
+
+.pull-right[
+.small[
+- **Blocks differ in length**: 8 brackets up to 2020, 9 from 2021, when the top bracket was split. Rows 11 and 12 hold 2022's top brackets; next year they hold 2023's.
+- **The grader re-runs your file** on a copy with a 2023 block added at the top. A query that lists row numbers matches the first sheet and fails the second.
+- **`REPLACE` first**: labels have two spaces around "to" and "and", but one 2019 label has one. `REPLACE` handles pairs left to right, so three spaces would become two; this sheet never has three.
+- **Simple `CASE`**: compare one expression with a list of values; an unlisted label gives NULL, and the `WHERE` with the same list keeps those out.
+- **`row_num` stays in the output** to sort and to trace each value to its sheet row, never to choose.
+]
+]
+
+---
 
 # The Drill
 
 ```bash
 Rscript data/build_rtb_sample.R                       # once: database + expected/
-python module-06/check.py module-06/exercise.sql      # blank: fails all 4 blocks
-python module-06/check.py module-06/solution.sql      # reference: passes all 4
+python module-06/check.py module-06/exercise.sql      # blank: fails all 8 blocks
+python module-06/check.py module-06/solution.sql      # reference: passes all 8
 ```
 
 --
@@ -537,37 +750,36 @@ prints one line per block:
 ```
 Q1  PASS  rtb_ca_all (8826 rows)
 Q2  FAIL  rtb_ca_eoy: 33 rows, expected 211
+Q8  FAIL  ftb_b4a_top matches this sheet but not the same sheet with a 2023 block ...
 ```
 
 --
 
 **Break it on purpose**: move Q2's date test into `WHERE`; drop a `COALESCE` in Q3; drop
-Q1's parentheses; forget Q4's skipped dates. Each fails at its own block, and a Q1 mistake
-carries into the later blocks.
+Q1's parentheses; forget Q4's skipped dates; use `SELECT DISTINCT` in Q5; count
+`forbes_worth` in Q6; list row numbers in Q8. Each fails at its own block.
 
 Then: the audio lesson (`module-06/lesson/`), the walking quiz (`module-06/quiz/`), and
-the real file in `opa-prop40/bsz-analysis/sql/`.
+the real files in `opa-prop40/bsz-analysis/sql/`.
 
 ---
 class: inverse
 
 # The Key Takeaways
 
-&lt;br&gt;
-
 ### 1. Every block is `DROP TABLE IF EXISTS` + `CREATE TABLE AS`: rerunnable, and readable from R and Python alike.
 
 --
-
-&lt;br&gt;
 
 ### 2. One long table with a date column beats seven tables; a condition in `ON` joins some rows and keeps all.
 
 --
 
-&lt;br&gt;
-
 ### 3. Think about NULL first: `SUM` skips it, `COUNT(*)` does not, `NOT IN` breaks on it, `COALESCE` turns an empty sum into R's 0.
+
+--
+
+### 4. Choose rows by what they are (a key, a label), never by where they sit: `ROW_NUMBER` keeps first copies, `REPLACE` + `CASE` pick labels.
 
 ---
 class: sample-code
@@ -610,7 +822,7 @@ ORDER BY date;
 &lt;tr&gt;&lt;td&gt;6&lt;/td&gt;&lt;td&gt;SQL in a Real Replication &lt;i&gt;(just finished)&lt;/i&gt;&lt;/td&gt;&lt;td&gt;✓ done&lt;/td&gt;&lt;td&gt;&lt;a href="#sample"&gt;M6&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;/table&gt;
 
-**You're done with the SQL course.** Drill the four blocks until you can write each one cold, then read the real file.
+**You're done with the SQL course.** Drill the eight blocks until you can write each one cold, then read the real files.
 
 ---
 class: center, middle, inverse
@@ -712,6 +924,84 @@ ORDER BY (industries = 'Total'), fraction_forbes_worth DESC, industries;
 ```
 
 &lt;a href="#q3-main" class="nav-btn"&gt;← back&lt;/a&gt;
+
+---
+name: part2-dgp
+
+# Backup: How the Part 2 Tables Are Built
+
+`data/build_rtb_sample.R`, second seed 4026 (the part 1 tables are unchanged by it).
+
+.small[
+- **`data_sec_all`**: the 38 possible Californians of the panel, each present in a year with probability 0.85 (the top 4 always), 2019 to 2025, sorted by year and worth. Worth grows about 6% a year with noise; the income and tax columns are random shares of worth, about 15% NULL.
+- **Exclusion**: one invented id in `data_sec_agg_exclude` (in the real file, a person counted as a Californian for only part of the panel).
+- **Two fortunes, one person**: in 2022 one id has rows worth 8,000 and 5,256. Both stay.
+- **All NULL**: `option_profit` is empty for every 2019 row.
+- **The re-paste**: the last four 2025 rows are appended again. One copy has a re-typed `dividend`; one row has no worth.
+- **`ftb_b4a`**: taxable years 2022 down to 2016, newest first, sheet rows from 4. Eight brackets a year, nine from 2021. Labels with double spaces, one 2019 label with a single space, one suppressed (NULL) cell, and a footnote row with no year at the end.
+]
+
+&lt;a href="#part2-main" class="nav-btn"&gt;← back&lt;/a&gt;
+
+---
+name: q6-detail
+
+# Backup: Q6, the Full Block
+
+.pull-left[
+.small[
+```sql
+DROP TABLE IF EXISTS data_sec_agg;
+CREATE TABLE data_sec_agg AS
+SELECT
+  year,
+  COUNT(*)                                   AS n,
+  COALESCE(SUM(forbes_worth), 0) / 1000.0    AS forbes_worth,
+  COALESCE(SUM(forbes_public_worth), 0)
+    / 1000.0                                 AS forbes_public_worth,
+  COALESCE(SUM(purchase), 0) / 1000.0        AS purchase,
+  COALESCE(SUM(sale), 0) / 1000.0            AS sale,
+  COALESCE(SUM(kg), 0) / 1000.0              AS kg,
+  ...                     -- kg_long to w_pi, one line each
+  COALESCE(SUM(total_tax), 0) / 1000.0       AS total_tax,
+  COALESCE(SUM(economic_income), 0) / 1000.0 AS economic_income
+FROM data_sec_all_kept
+GROUP BY year
+ORDER BY year;
+```
+]
+]
+
+.pull-right[
+.small[
+
+```sql
+SELECT year, n,
+       ROUND(forbes_worth, 1) AS worth_bn,
+       option_profit AS opt_bn
+FROM data_sec_agg;
+```
+
+
+
+
+Table: 7 records
+
+|year |  n| worth_bn|    opt_bn|
+|:----|--:|--------:|---------:|
+|2019 | 35|    641.4| 0.0000000|
+|2020 | 33|    723.0| 1.2805693|
+|2021 | 32|    719.6| 0.7682987|
+|2022 | 35|    762.0| 0.4440023|
+|2023 | 30|    719.1| 0.2513092|
+|2024 | 31|    808.8| 1.4260146|
+|2025 | 30|    948.0| 1.4810304|
+]
+
+2019's `option_profit` is 0, not NULL: every 2019 value is NULL, and `COALESCE` turns the empty sum into R's 0.
+]
+
+&lt;a href="#q6-main" class="nav-btn"&gt;← back&lt;/a&gt;
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

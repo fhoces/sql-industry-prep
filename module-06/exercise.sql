@@ -2,16 +2,18 @@
 -- Module 6: SQL in a real replication
 -- =============================================================================
 --
--- Rebuild the four tables of a real pipeline step (01_rtb_ca.sql in
--- github.com/fhoces/opa-prop40) on the synthetic panel in
--- data/rtb_sample.sqlite. Write one block per question, each creating its
--- table, then grade the whole file:
+-- Part 1 (Q1 to Q4): rebuild the four tables of a real pipeline step
+-- (01_rtb_ca.sql in github.com/fhoces/opa-prop40) on the synthetic panel in
+-- data/rtb_sample.sqlite. Part 2 (Q5 to Q8): rebuild the four tables of two
+-- more real files from the paper's second step, 02_data_sec_agg.sql and
+-- 03_ftb_b4a.sql. Write one block per question, each creating its table,
+-- then grade the whole file:
 --
 --   python module-06/check.py module-06/exercise.sql
 --
 -- (Work on a copy if you like: python module-06/check.py my_answers.sql.)
 -- The grader runs the file on a scratch copy of the database, so it never
--- changes the shared file. A blank file fails all four blocks.
+-- changes the shared file. A blank file fails all eight blocks.
 --
 -- Unlike modules 1 to 5 there are no .headers / .mode lines at the top: the
 -- grader runs the file with Python's executescript, which does not know the
@@ -26,6 +28,13 @@
 --   rtb_ca_cik       (forbes_id, cik)
 --   rtb_residency_overrides (forbes_id, rule, note)   rule is 'include' or
 --                                                     'exclude'
+--   data_sec_all     (row_num, year, forbes_id, then 29 money columns from
+--                     forbes_worth to economic_income)   $ million, one row
+--                                                       per person and year
+--   data_sec_agg_exclude (forbes_id)
+--   ftb_b4a          (row_num, taxable_year, agic, all_returns, ca_agi,
+--                     taxable_income, total_tax)          $, one row per
+--                                                       income bracket and year
 --
 -- The reference answers are in a commented block at the bottom of this file
 -- and in module-06/solution.sql. Try each block cold first.
@@ -115,7 +124,93 @@
 
 
 -- =============================================================================
--- Reference answers (the real file's four blocks; also module-06/solution.sql)
+-- Part 2: the yearly panel and the tax table (02_data_sec_agg.sql, 03_ftb_b4a.sql)
+-- =============================================================================
+--
+-- These files read two sheets of the paper's public workbook, loaded into
+-- SQLite with their sheet order kept in row_num. Look at the inputs first:
+--   SELECT * FROM data_sec_all ORDER BY row_num DESC LIMIT 8;
+--   SELECT row_num, taxable_year, agic FROM ftb_b4a;
+
+
+-- -----------------------------------------------------------------------------
+-- Q5. The rows that count
+--
+--     Create data_sec_all_kept from data_sec_all with two filters:
+--       * drop every id listed in data_sec_agg_exclude (read the list from
+--         the table, in a CTE);
+--       * drop re-pasted rows. A row is a copy when an EARLIER row (lower
+--         row_num) has the same year, forbes_id and forbes_worth; keep the
+--         first. Two NULL worths count as the same worth. Rows with the same
+--         id and year but a different worth are both real: keep both.
+--     Hint: ROW_NUMBER() OVER (PARTITION BY ... ORDER BY row_num).
+--
+--     Table: data_sec_all_kept
+--     Columns: every column of data_sec_all (an extra helper column such as
+--              copy_num is fine)
+-- -----------------------------------------------------------------------------
+
+-- Your query here
+
+
+-- -----------------------------------------------------------------------------
+-- Q6. Yearly count and sums, in $ billion
+--
+--     From data_sec_all_kept, one row per year:
+--       n          the number of rows
+--       and, for each money column, its sum divided by 1000 ($ billion),
+--       0 (not NULL) when every value in that year is NULL.
+--     The real file does all 27 columns from forbes_worth to economic_income,
+--     except public_worth and public_worth_avg. The grader needs at least the
+--     seven named below; add the others if you like (they are checked too).
+--
+--     Table: data_sec_agg
+--     Columns: year, n, forbes_worth, forbes_public_worth, option_profit,
+--              dividend, ca_income_tax, total_tax, economic_income
+-- -----------------------------------------------------------------------------
+
+-- Your query here
+
+
+-- -----------------------------------------------------------------------------
+-- Q7. Yearly totals over all income brackets
+--
+--     From ftb_b4a, one row per taxable year (skip any row with no year):
+--       n_brackets       the number of brackets that year
+--       all_returns, ca_agi, taxable_income, total_tax
+--                        sums over the brackets, in $ (no unit change),
+--                        0 when every value is NULL
+--
+--     Table: ftb_b4a_year
+--     Columns: taxable_year, n_brackets, all_returns, ca_agi, taxable_income,
+--              total_tax
+-- -----------------------------------------------------------------------------
+
+-- Your query here
+
+
+-- -----------------------------------------------------------------------------
+-- Q8. The top-bracket rows, picked by label
+--
+--     From ftb_b4a, the rows of the top brackets, with a short key:
+--       5m_plus    $5,000,000 and over        (one row per year up to 2020)
+--       5m_to_10m  $5,000,000 to $9,999,999   (2021 and 2022)
+--       10m_plus   $10,000,000 and over       (2021 and 2022)
+--     Pick the rows by their label (agic), never by row_num: the year blocks
+--     have different lengths, and the grader re-runs your file on a sheet
+--     with one more year at the top. The labels have two spaces around "to"
+--     and "and", but not always. Order by taxable_year, then row_num.
+--
+--     Table: ftb_b4a_top
+--     Columns: taxable_year, bracket, row_num, all_returns, ca_agi,
+--              taxable_income, total_tax
+-- -----------------------------------------------------------------------------
+
+-- Your query here
+
+
+-- =============================================================================
+-- Reference answers (the real files' blocks; also module-06/solution.sql)
 -- =============================================================================
 --
 -- -- -----------------------------------------------------------------------------
@@ -319,3 +414,163 @@
 -- WHERE date NOT IN ('2022-07-18', '2026-03-29', '2026-03-30')
 -- GROUP BY date
 -- ORDER BY date;
+--
+--
+-- -- -----------------------------------------------------------------------------
+-- -- Q5. The rows that count (intermediate table)  [02_data_sec_agg.sql, Q1]
+-- --     Course: module 4 (CTE chain, NOT IN (SELECT ...)), module 5 (window
+-- --     function ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...))
+-- --     Beyond the course: DROP TABLE IF EXISTS, CREATE TABLE AS.
+-- --
+-- --     Two filters, in the order the R code applied them:
+-- --       * kept: drop the ids on the exclusion table. NOT IN (SELECT ...)
+-- --         would drop every row if the subquery returned a NULL id; the
+-- --         loaders never write one.
+-- --       * numbered / WHERE copy_num = 1: drop exact re-pastes. The sheet
+-- --         repeats a four-row block of 2025 rows at its tail. A row counts as a
+-- --         copy when an earlier row (lower row_num) has the same year,
+-- --         forbes_id and forbes_worth. This is R's
+-- --         !duplicated(df[c("year", "forbes_id", "forbes_worth")]), which
+-- --         also keeps the first occurrence. Two rows with the same id and year
+-- --         but a different worth (two separately tracked Forbes amounts) are
+-- --         both kept. PARTITION BY puts NULL worths in one group, as
+-- --         duplicated() treats two NAs as equal.
+-- -- -----------------------------------------------------------------------------
+-- DROP TABLE IF EXISTS data_sec_all_kept;
+-- CREATE TABLE data_sec_all_kept AS
+-- WITH kept AS (
+--   SELECT *
+--   FROM data_sec_all
+--   WHERE forbes_id NOT IN (SELECT forbes_id FROM data_sec_agg_exclude)
+-- ),
+-- numbered AS (
+--   SELECT
+--     kept.*,
+--     ROW_NUMBER() OVER (
+--       PARTITION BY year, forbes_id, forbes_worth
+--       ORDER BY row_num
+--     ) AS copy_num
+--   FROM kept
+-- )
+-- SELECT *
+-- FROM numbered
+-- WHERE copy_num = 1;
+--
+--
+-- -- -----------------------------------------------------------------------------
+-- -- Q6. Yearly count and sums, in $ billion  [02_data_sec_agg.sql, Q2]
+-- --     Course: module 3 (GROUP BY with COUNT and SUM), module 1 (COALESCE)
+-- --
+-- --     The R code was group_by(year) |> summarise(n = n(), across(cols,
+-- --     \(x) sum(x, na.rm = TRUE) / 1000)). Here it is one GROUP BY with one
+-- --     SUM per column, in the column order of the data_sec_agg sheet. Dividing
+-- --     by 1000.0 (not 1000) keeps the division in floating point.
+-- --
+-- --     NULLs: SUM skips NULL, as R's sum(..., na.rm = TRUE) does. A year where
+-- --     every value of a column is NULL would give NULL in SQL and 0 in R, so
+-- --     each sum is wrapped in COALESCE(..., 0).
+-- -- -----------------------------------------------------------------------------
+-- DROP TABLE IF EXISTS data_sec_agg;
+-- CREATE TABLE data_sec_agg AS
+-- SELECT
+--   year,
+--   COUNT(*)                                          AS n,
+--   COALESCE(SUM(forbes_worth), 0) / 1000.0           AS forbes_worth,
+--   COALESCE(SUM(forbes_public_worth), 0) / 1000.0    AS forbes_public_worth,
+--   COALESCE(SUM(purchase), 0) / 1000.0               AS purchase,
+--   COALESCE(SUM(sale), 0) / 1000.0                   AS sale,
+--   COALESCE(SUM(kg), 0) / 1000.0                     AS kg,
+--   COALESCE(SUM(kg_long), 0) / 1000.0                AS kg_long,
+--   COALESCE(SUM(kg_short), 0) / 1000.0               AS kg_short,
+--   COALESCE(SUM(option_profit), 0) / 1000.0          AS option_profit,
+--   COALESCE(SUM(noneq_comp), 0) / 1000.0             AS noneq_comp,
+--   COALESCE(SUM(ordinary_income), 0) / 1000.0        AS ordinary_income,
+--   COALESCE(SUM(kg_taxable), 0) / 1000.0             AS kg_taxable,
+--   COALESCE(SUM(dividend), 0) / 1000.0               AS dividend,
+--   COALESCE(SUM(fiscal_income), 0) / 1000.0          AS fiscal_income,
+--   COALESCE(SUM(donation), 0) / 1000.0               AS donation,
+--   COALESCE(SUM(donation_deductible), 0) / 1000.0    AS donation_deductible,
+--   COALESCE(SUM(income_taxable), 0) / 1000.0         AS income_taxable,
+--   COALESCE(SUM(ca_income_tax), 0) / 1000.0          AS ca_income_tax,
+--   COALESCE(SUM(fed_ordinary_income_tax), 0) / 1000.0 AS fed_ordinary_income_tax,
+--   COALESCE(SUM(fed_preferential_tax), 0) / 1000.0   AS fed_preferential_tax,
+--   COALESCE(SUM(fed_income_tax), 0) / 1000.0         AS fed_income_tax,
+--   COALESCE(SUM(fiscal_income_tax), 0) / 1000.0      AS fiscal_income_tax,
+--   COALESCE(SUM(sales_tax), 0) / 1000.0              AS sales_tax,
+--   COALESCE(SUM(w_txt), 0) / 1000.0                  AS w_txt,
+--   COALESCE(SUM(w_tax_ppent), 0) / 1000.0            AS w_tax_ppent,
+--   COALESCE(SUM(w_pi), 0) / 1000.0                   AS w_pi,
+--   COALESCE(SUM(total_tax), 0) / 1000.0              AS total_tax,
+--   COALESCE(SUM(economic_income), 0) / 1000.0        AS economic_income
+-- FROM data_sec_all_kept
+-- GROUP BY year
+-- ORDER BY year;
+--
+--
+-- -- -----------------------------------------------------------------------------
+-- -- Q7. Yearly totals over all AGI brackets  [03_ftb_b4a.sql, Q1]
+-- --     Course: module 3 (GROUP BY with COUNT and SUM), module 1 (WHERE ...
+-- --     IS NOT NULL, COALESCE)
+-- --
+-- --     Replaces sum(column[first_row:last_row], na.rm = TRUE), one call per
+-- --     year and column. GROUP BY taxable_year does all years and all four
+-- --     columns at once. n_brackets is there to check the grouping (in the
+-- --     course table: 9 rows for 2021 and 2022, 8 for every earlier year).
+-- -- -----------------------------------------------------------------------------
+-- DROP TABLE IF EXISTS ftb_b4a_year;
+-- CREATE TABLE ftb_b4a_year AS
+-- SELECT
+--   taxable_year,
+--   COUNT(*)                          AS n_brackets,
+--   COALESCE(SUM(all_returns), 0)     AS all_returns,
+--   COALESCE(SUM(ca_agi), 0)          AS ca_agi,
+--   COALESCE(SUM(taxable_income), 0)  AS taxable_income,
+--   COALESCE(SUM(total_tax), 0)       AS total_tax
+-- FROM ftb_b4a
+-- WHERE taxable_year IS NOT NULL
+-- GROUP BY taxable_year
+-- ORDER BY taxable_year;
+--
+--
+-- -- -----------------------------------------------------------------------------
+-- -- Q8. The top-bracket rows, with a short bracket key  [03_ftb_b4a.sql, Q2]
+-- --     Course: module 4 (CTE), module 1 (CASE WHEN, IN (...) list, REPLACE)
+-- --
+-- --     The sheet's labels have two spaces around "to" and "and"
+-- --     ('5,000,000  and  over'). The labelled CTE collapses double spaces
+-- --     with REPLACE so the labels can be written normally below. A CASE then
+-- --     maps each label to a short key:
+-- --       5m_plus    $5,000,000 and over        (one row per year up to 2020)
+-- --       5m_to_10m  $5,000,000 to $9,999,999   (2021 and 2022)
+-- --       10m_plus   $10,000,000 and over       (2021 and 2022)
+-- --     Every other bracket is dropped by the WHERE clause.
+-- -- -----------------------------------------------------------------------------
+-- DROP TABLE IF EXISTS ftb_b4a_top;
+-- CREATE TABLE ftb_b4a_top AS
+-- WITH labelled AS (
+--   SELECT
+--     row_num,
+--     taxable_year,
+--     REPLACE(agic, '  ', ' ') AS agic,
+--     all_returns,
+--     ca_agi,
+--     taxable_income,
+--     total_tax
+--   FROM ftb_b4a
+--   WHERE taxable_year IS NOT NULL
+-- )
+-- SELECT
+--   taxable_year,
+--   CASE agic
+--     WHEN '5,000,000 and over'       THEN '5m_plus'
+--     WHEN '5,000,000 to 9,999,999'   THEN '5m_to_10m'
+--     WHEN '10,000,000 and over'      THEN '10m_plus'
+--   END AS bracket,
+--   row_num,
+--   all_returns,
+--   ca_agi,
+--   taxable_income,
+--   total_tax
+-- FROM labelled
+-- WHERE agic IN ('5,000,000 and over', '5,000,000 to 9,999,999', '10,000,000 and over')
+-- ORDER BY taxable_year, row_num;

@@ -21,6 +21,15 @@
 #                           state field says (rule = 'include') or never
 #                           counted (rule = 'exclude')
 #                           (forbes_id, rule, note)
+#   data_sec_all            one row per California billionaire and year, in
+#                           sheet order: (row_num, year, forbes_id, then 29
+#                           money columns in $ million), with a re-pasted
+#                           block of four rows at the tail
+#   data_sec_agg_exclude    ids left out of the yearly sums (forbes_id)
+#   ftb_b4a                 a tax-statistics table, one row per income
+#                           bracket and taxable year: (row_num, taxable_year,
+#                           agic, all_returns, ca_agi, taxable_income,
+#                           total_tax), money in $
 #
 # It then runs module-06/solution.sql on a copy of the database with the
 # sqlite3 CLI and writes the reference results to module-06/expected/*.csv,
@@ -218,6 +227,123 @@ cik <- tibble(
 cik$cik[runif(nrow(cik)) < 0.25] <- NA
 
 # =============================================================================
+# Step 2 inputs: the yearly SEC panel and a tax-statistics table
+# =============================================================================
+# Module 6's second part (Q5 to Q8) reproduces two more real files,
+# 02_data_sec_agg.sql and 03_ftb_b4a.sql, which read two sheets of the
+# paper's public workbook after they are loaded into SQLite. These tables
+# copy the shape of those loaded sheets. A separate seed keeps every table
+# above unchanged when this section is edited.
+set.seed(4026)
+
+# data_sec_all: one row per California billionaire and year, money in
+# $ million, in sheet order (row_num). The 29 money columns are the sheet's.
+dsa_money <- c("forbes_worth", "forbes_public_worth", "purchase", "sale", "kg",
+               "kg_long", "kg_short", "option_profit", "noneq_comp",
+               "ordinary_income", "kg_taxable", "dividend", "fiscal_income",
+               "donation", "donation_deductible", "income_taxable",
+               "ca_income_tax", "fed_ordinary_income_tax", "fed_preferential_tax",
+               "fed_income_tax", "fiscal_income_tax", "sales_tax", "w_txt",
+               "w_tax_ppent", "w_pi", "public_worth", "public_worth_avg",
+               "total_tax", "economic_income")
+
+dsa_people <- tibble(forbes_id = ca_ids) |>
+  mutate(w0 = exp(runif(n(), log(1100), log(30000))))
+dsa_people$w0[match(people$forbes_id[1:4], dsa_people$forbes_id)] <- c(150000, 110000, 90000, 85000)
+
+dsa <- map_dfr(2019:2025, function(yr) {
+  keep <- runif(nrow(dsa_people)) < 0.85 | dsa_people$forbes_id %in% people$forbes_id[1:4]
+  p <- dsa_people[keep, ]
+  w <- round(p$w0 * exp(rnorm(nrow(p), 0.06 * (yr - 2019), 0.15)), 3)
+  pub <- round(w * runif(nrow(p), 0.3, 0.95), 3)
+  inc <- function(scale, p_null = 0.15) {
+    v <- round(w * scale * runif(nrow(p), 0.2, 1.8), 4)
+    v[runif(nrow(p)) < p_null] <- NA
+    v
+  }
+  out <- tibble(year = yr, forbes_id = p$forbes_id, forbes_worth = w, forbes_public_worth = pub,
+                purchase = inc(0.004), sale = inc(0.010), kg = inc(0.008),
+                kg_long = inc(0.007), kg_short = inc(0.001), option_profit = inc(0.002, 0.5),
+                noneq_comp = inc(0.0005), ordinary_income = inc(0.001), kg_taxable = inc(0.008),
+                dividend = inc(0.003), fiscal_income = inc(0.012), donation = inc(0.002),
+                donation_deductible = inc(0.001), income_taxable = inc(0.010),
+                ca_income_tax = inc(0.0012), fed_ordinary_income_tax = inc(0.0004),
+                fed_preferential_tax = inc(0.0015), fed_income_tax = inc(0.0019),
+                fiscal_income_tax = inc(0.003), sales_tax = inc(0.0002), w_txt = inc(0.004, 0),
+                w_tax_ppent = inc(0.0003, 0), w_pi = inc(0.03, 0),
+                public_worth = round(pub * runif(nrow(p), 0.95, 1.05), 3),
+                public_worth_avg = round(pub * runif(nrow(p), 0.85, 1.0), 3),
+                total_tax = inc(0.008, 0), economic_income = inc(0.04, 0))
+  arrange(out, desc(forbes_worth))
+})
+
+# Hand-placed cases for Q5 and Q6:
+#  * one id is on the exclusion table (in the real file, a person counted as
+#    a California resident only for part of the panel);
+#  * in 2022 one id has two rows with different worths (two separately
+#    tracked fortunes): both are real and both count;
+#  * option_profit is empty for every 2019 row, so its 2019 sum is NULL in
+#    SQL and must come out as 0;
+#  * the last four 2025 rows are pasted a second time at the tail of the
+#    sheet. One copy differs in a column outside the key (a re-typed
+#    dividend), and one row has no worth, so its copy can only be matched
+#    by treating two NULLs as equal.
+excluded_id <- dsa_people$forbes_id[!dsa_people$forbes_id %in% people$forbes_id[1:12]][1]
+twin_id <- dsa_people$forbes_id[!dsa_people$forbes_id %in% c(people$forbes_id[1:12], excluded_id)][1]
+dsa <- dsa |> filter(!(forbes_id == twin_id & year == 2022))
+twin_rows <- tibble(year = 2022L, forbes_id = twin_id, forbes_worth = c(8000, 5256)) |>
+  mutate(forbes_public_worth = round(forbes_worth * 0.6, 3))
+for (col in setdiff(dsa_money, names(twin_rows))) {
+  twin_rows[[col]] <- round(twin_rows$forbes_worth * runif(2, 0.001, 0.01), 4)
+}
+dsa <- bind_rows(dsa, twin_rows) |>
+  mutate(year = as.integer(year)) |>
+  arrange(year, desc(forbes_worth))
+dsa$option_profit[dsa$year == 2019] <- NA
+n_2025 <- sum(dsa$year == 2025)
+last4 <- which(dsa$year == 2025)[(n_2025 - 3):n_2025]
+dsa$forbes_worth[last4[4]] <- NA
+repaste <- dsa[last4, ]
+repaste$dividend[2] <- repaste$dividend[2] + 0.5
+dsa <- bind_rows(dsa, repaste)
+data_sec_all <- bind_cols(row_num = seq_len(nrow(dsa)), dsa[c("year", "forbes_id", dsa_money)])
+data_sec_agg_exclude <- tibble(forbes_id = excluded_id)
+
+# ftb_b4a: a tax-statistics table by income bracket, one block per taxable
+# year, newest year first, as the source sheet lists it. row_num is the sheet
+# row (the title and header rows 1 to 3 are not loaded). The blocks differ in
+# length: from 2021 the top bracket is split in two, so any rule that picks
+# rows by position breaks when a year is added. Labels carry two spaces
+# around "to" and "and"; one 2019 label has a single space, as such
+# hand-made sheets often do. The last loaded row is a footnote with no year.
+ftb_labels <- function(yr) {
+  base <- c("Negative", "Zero", "1  to  49,999", "50,000  to  99,999",
+            "100,000  to  499,999", "500,000  to  999,999", "1,000,000  to  4,999,999")
+  top <- if (yr >= 2021) c("5,000,000  to  9,999,999", "10,000,000  and  over")
+         else if (yr == 2019) "5,000,000  and over"
+         else "5,000,000  and  over"
+  c(base, top)
+}
+ftb <- map_dfr(2022:2016, function(yr) {
+  lab <- ftb_labels(yr)
+  k <- length(lab)
+  returns <- round(c(150000, 60000, 9e6, 4e6, 4.5e6, 3e5, 1e5, rep(9000, k - 7)) *
+                     runif(k, 0.9, 1.1) * (1 + 0.02 * (yr - 2016)))
+  if (k == 9) returns[9] <- round(returns[8] * 0.6)
+  avg_agi <- c(-60000, 0, 25000, 72000, 190000, 690000, 1.9e6, 7e6, 3.1e7)[seq_len(k)]
+  if (k == 8) avg_agi[8] <- 1.6e7
+  agi <- round(returns * avg_agi * runif(k, 0.95, 1.05), -3)
+  taxable <- round(pmax(agi, 0) * runif(k, 0.75, 0.95), -3)
+  tax <- round(taxable * c(0.001, 0, 0.01, 0.03, 0.06, 0.09, 0.105, 0.12, 0.125)[seq_len(k)], -3)
+  tibble(taxable_year = as.integer(yr), agic = lab, all_returns = returns,
+         ca_agi = agi, taxable_income = taxable, total_tax = tax)
+})
+ftb$total_tax[ftb$taxable_year == 2017 & ftb$agic == "Zero"] <- NA   # a suppressed cell
+ftb <- bind_rows(ftb, tibble(taxable_year = NA_integer_,
+                             agic = "Note: detail may not add to totals because of rounding"))
+ftb_b4a <- bind_cols(row_num = 3L + seq_len(nrow(ftb)), ftb)
+
+# =============================================================================
 # Write the database
 # =============================================================================
 
@@ -232,6 +358,15 @@ dbWriteTable(con, "rtb_ca_cik", cik, overwrite = TRUE,
              field.types = c(forbes_id = "TEXT", cik = "INTEGER"))
 dbWriteTable(con, "rtb_residency_overrides", overrides, overwrite = TRUE,
              field.types = c(forbes_id = "TEXT", rule = "TEXT", note = "TEXT"))
+dbWriteTable(con, "data_sec_all", data_sec_all, overwrite = TRUE,
+             field.types = c(row_num = "INTEGER", year = "INTEGER", forbes_id = "TEXT",
+                             setNames(rep("REAL", length(dsa_money)), dsa_money)))
+dbWriteTable(con, "data_sec_agg_exclude", data_sec_agg_exclude, overwrite = TRUE,
+             field.types = c(forbes_id = "TEXT"))
+dbWriteTable(con, "ftb_b4a", ftb_b4a, overwrite = TRUE,
+             field.types = c(row_num = "INTEGER", taxable_year = "INTEGER", agic = "TEXT",
+                             all_returns = "REAL", ca_agi = "REAL",
+                             taxable_income = "REAL", total_tax = "REAL"))
 invisible(dbExecute(con, "CREATE INDEX idx_rtb_all_combined_date ON rtb_all_combined (date)"))
 invisible(dbExecute(con, "CREATE INDEX idx_rtb_all_combined_id ON rtb_all_combined (forbes_id)"))
 dbDisconnect(con)
@@ -240,6 +375,9 @@ cat(sprintf("%s: rtb_all_combined %d rows (%d people x %d dates), rtb_ca_cik %d,
             db_path, nrow(panel), n_people, n_dates, nrow(cik), nrow(overrides)))
 cat("Top-4 ids used in module-06/solution.sql:",
     paste(people$forbes_id[1:4], collapse = ", "), "\n")
+cat(sprintf("data_sec_all %d rows (excluded id %s, re-pasted rows %d to %d), ftb_b4a %d rows\n",
+            nrow(data_sec_all), excluded_id, nrow(data_sec_all) - 3, nrow(data_sec_all),
+            nrow(ftb_b4a)))
 
 # =============================================================================
 # Reference results for module 6
@@ -260,7 +398,11 @@ outputs <- c(
   rtb_ca_all                 = "date, forbes_id",
   rtb_ca_eoy                 = "date, forbes_worth DESC, forbes_id",
   rtb_ca_2026_01_01_industry = "(industries = 'Total'), fraction_forbes_worth DESC, industries",
-  rtb_ca_aggregate           = "date"
+  rtb_ca_aggregate           = "date",
+  data_sec_all_kept          = "row_num",
+  data_sec_agg               = "year",
+  ftb_b4a_year               = "taxable_year",
+  ftb_b4a_top                = "taxable_year, row_num"
 )
 for (t in names(outputs)) {
   df <- dbGetQuery(con, sprintf("SELECT * FROM %s ORDER BY %s", t, outputs[[t]]))

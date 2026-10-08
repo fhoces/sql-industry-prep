@@ -1,8 +1,10 @@
 # Module 6 audio lesson
 
-`sql-in-a-real-replication.m4b`: about 30 minutes, 10 chapters, for Apple Books
+`sql-in-a-real-replication.m4b`: about 36 minutes, 11 chapters, for Apple Books
 (AirDrop it to the phone, or add it to Books on the Mac and sync). It walks through the
-four blocks of the real query in words: no query is read character by character.
+four blocks of the real query in words, then (chapter 10) the four blocks of part 2:
+re-pasted rows, exclusions, yearly sums and rows picked by label. No query is read
+character by character.
 
 - `text/NN_title.txt`: the narration, one file per chapter (first line is the chapter
   title). Edit these, then rebuild.

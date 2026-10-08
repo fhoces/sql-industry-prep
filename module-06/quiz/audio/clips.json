@@ -1006,5 +1006,509 @@
  {
   "file": "c12-L3-wrong.mp3",
   "text": "Not quite. The answer is B. You can name the difference, extra dates from a later data file, and everything shared agrees. That is a vintage gap. Unexplained is for differences you cannot name."
+ },
+ {
+  "file": "c13-L1-stem.mp3",
+  "text": "Look at the code on the screen. Which row of each group does the final where clause keep?"
+ },
+ {
+  "file": "c13-L1-optA.mp3",
+  "text": "Option A. The row with the lowest row num, the first copy in sheet order."
+ },
+ {
+  "file": "c13-L1-optB.mp3",
+  "text": "Option B. The row with the highest worth, since the window ranks each group by worth."
+ },
+ {
+  "file": "c13-L1-optC.mp3",
+  "text": "Option C. The last copy pasted, because row number counts back from the end of the sheet."
+ },
+ {
+  "file": "c13-L1-optD.mp3",
+  "text": "Option D. Only rows whose group has a single member, so every repeated row is dropped."
+ },
+ {
+  "file": "c13-L1-right.mp3",
+  "text": "Correct. Row number numbers each group in the order given, here by row num, so copy number one is the row nearest the top of the sheet."
+ },
+ {
+  "file": "c13-L1-wrong.mp3",
+  "text": "Not quite. The answer is A. Row number numbers each group in the order given, here by row num, so copy number one is the row nearest the top of the sheet."
+ },
+ {
+  "file": "c13-L2-stem.mp3",
+  "text": "Keeping the first copy with row number. In R, this filter was not duplicated on year, id and worth. What does ordering the window by row num reproduce?"
+ },
+ {
+  "file": "c13-L2-optA.mp3",
+  "text": "Option A. That duplicated sorts the data by its key columns before it marks repeats."
+ },
+ {
+  "file": "c13-L2-optB.mp3",
+  "text": "Option B. That duplicated flags later repeats, so the earliest row stays."
+ },
+ {
+  "file": "c13-L2-optC.mp3",
+  "text": "Option C. That duplicated keeps the last occurrence of each row unless told otherwise."
+ },
+ {
+  "file": "c13-L2-optD.mp3",
+  "text": "Option D. That group by in R sorts each group ascending before it summarises."
+ },
+ {
+  "file": "c13-L2-right.mp3",
+  "text": "Correct. Duplicated flags every row that repeats an earlier one, so negating it keeps the first occurrence. Ordering by row num makes the first copy number one."
+ },
+ {
+  "file": "c13-L2-wrong.mp3",
+  "text": "Not quite. The answer is B. Duplicated flags every row that repeats an earlier one, so negating it keeps the first occurrence. Ordering by row num makes the first copy number one."
+ },
+ {
+  "file": "c13-L3-stem.mp3",
+  "text": "Look at the code on the screen. The order by now says descending. What changes in the kept table?"
+ },
+ {
+  "file": "c13-L3-optA.mp3",
+  "text": "Option A. Nothing, because copy number one is always the first row of the sheet."
+ },
+ {
+  "file": "c13-L3-optB.mp3",
+  "text": "Option B. The query fails, because row number only accepts an ascending order."
+ },
+ {
+  "file": "c13-L3-optC.mp3",
+  "text": "Option C. The last copy of each group is kept, so a re-typed value can replace the original."
+ },
+ {
+  "file": "c13-L3-optD.mp3",
+  "text": "Option D. Whole groups are dropped, because numbering starts at the bottom of the sheet."
+ },
+ {
+  "file": "c13-L3-right.mp3",
+  "text": "Correct. Copy number one goes to the first row in the window's order. Sorted descending, that is the last pasted copy, which wins even if a cell was re-typed."
+ },
+ {
+  "file": "c13-L3-wrong.mp3",
+  "text": "Not quite. The answer is C. Copy number one goes to the first row in the window's order. Sorted descending, that is the last pasted copy, which wins even if a cell was re-typed."
+ },
+ {
+  "file": "c14-L1-stem.mp3",
+  "text": "What counts as a copy. One person has two rows in 2022, worth eight thousand and five thousand two hundred fifty six. What does block five do with them?"
+ },
+ {
+  "file": "c14-L1-optA.mp3",
+  "text": "Option A. Keeps the first, since one person cannot appear twice in the same year."
+ },
+ {
+  "file": "c14-L1-optB.mp3",
+  "text": "Option B. Keeps the larger worth, since partition by orders each group by worth."
+ },
+ {
+  "file": "c14-L1-optC.mp3",
+  "text": "Option C. Drops both, since people with repeated rows go on the exclusion table."
+ },
+ {
+  "file": "c14-L1-optD.mp3",
+  "text": "Option D. Keeps both, since a different worth means two separately tracked fortunes."
+ },
+ {
+  "file": "c14-L1-right.mp3",
+  "text": "Correct. The worth is part of the key, so the two rows land in different groups and each is copy number one. Only true re-pastes share all three values."
+ },
+ {
+  "file": "c14-L1-wrong.mp3",
+  "text": "Not quite. The answer is D. The worth is part of the key, so the two rows land in different groups and each is copy number one. Only true re-pastes share all three values."
+ },
+ {
+  "file": "c14-L2-stem.mp3",
+  "text": "Look at the code on the screen. Why does this remove none of the re-pasted rows?"
+ },
+ {
+  "file": "c14-L2-optA.mp3",
+  "text": "Option A. Row num differs on every row, so no two rows are identical."
+ },
+ {
+  "file": "c14-L2-optB.mp3",
+  "text": "Option B. Distinct skips rows with a null, and every pasted row has a null somewhere."
+ },
+ {
+  "file": "c14-L2-optC.mp3",
+  "text": "Option C. Distinct is only allowed together with group by, so it is ignored here."
+ },
+ {
+  "file": "c14-L2-optD.mp3",
+  "text": "Option D. Distinct works within one C T E at a time, not across the whole sheet."
+ },
+ {
+  "file": "c14-L2-right.mp3",
+  "text": "Correct. Select distinct star compares every column, including the sheet position. The original and its copy always differ there."
+ },
+ {
+  "file": "c14-L2-wrong.mp3",
+  "text": "Not quite. The answer is A. Select distinct star compares every column, including the sheet position. The original and its copy always differ there."
+ },
+ {
+  "file": "c14-L3-stem.mp3",
+  "text": "What counts as a copy. One pasted copy differs from its original only in the dividend column. Which partition columns handle every case in the sheet correctly?"
+ },
+ {
+  "file": "c14-L3-optA.mp3",
+  "text": "Option A. Every column, so that only rows identical in every cell count as copies."
+ },
+ {
+  "file": "c14-L3-optB.mp3",
+  "text": "Option B. Year, id and worth, so the copy matches on the key and is dropped."
+ },
+ {
+  "file": "c14-L3-optC.mp3",
+  "text": "Option C. Year and id only, so every repeated person and year keeps a single row."
+ },
+ {
+  "file": "c14-L3-optD.mp3",
+  "text": "Option D. Row num alone, since it identifies each row of the sheet uniquely."
+ },
+ {
+  "file": "c14-L3-right.mp3",
+  "text": "Correct. The key says what one observation is. Every column would keep the re-typed copy, year and id alone would drop the real 2022 pair, and row num groups nothing."
+ },
+ {
+  "file": "c14-L3-wrong.mp3",
+  "text": "Not quite. The answer is B. The key says what one observation is. Every column would keep the re-typed copy, year and id alone would drop the real 2022 pair, and row num groups nothing."
+ },
+ {
+  "file": "c15-L1-stem.mp3",
+  "text": "Look at the code on the screen. Which pasted copy does this version fail to remove?"
+ },
+ {
+  "file": "c15-L1-optA.mp3",
+  "text": "Option A. The copy with a re-typed dividend, because its other columns differ."
+ },
+ {
+  "file": "c15-L1-optB.mp3",
+  "text": "Option B. None of them, because not exists treats two nulls as equal."
+ },
+ {
+  "file": "c15-L1-optC.mp3",
+  "text": "Option C. The copy of the row with no worth, because null equals null is not true."
+ },
+ {
+  "file": "c15-L1-optD.mp3",
+  "text": "Option D. Every copy, because the row num test compares the two rows in the wrong direction."
+ },
+ {
+  "file": "c15-L1-right.mp3",
+  "text": "Correct. The equality test on worth is unknown when both worths are null, so not exists finds no earlier row and the copy stays. Partition by would have grouped them."
+ },
+ {
+  "file": "c15-L1-wrong.mp3",
+  "text": "Not quite. The answer is C. The equality test on worth is unknown when both worths are null, so not exists finds no earlier row and the copy stays. Partition by would have grouped them."
+ },
+ {
+  "file": "c15-L2-stem.mp3",
+  "text": "Nulls in groups versus equality. How does partition by treat two rows whose worth is null?"
+ },
+ {
+  "file": "c15-L2-optA.mp3",
+  "text": "Option A. It puts each in a group of its own, since null never equals null."
+ },
+ {
+  "file": "c15-L2-optB.mp3",
+  "text": "Option B. It leaves both out of the numbering, since window functions skip nulls."
+ },
+ {
+  "file": "c15-L2-optC.mp3",
+  "text": "Option C. It stops with an error, since a partition key cannot be null."
+ },
+ {
+  "file": "c15-L2-optD.mp3",
+  "text": "Option D. It puts them in the same group, just as group by does."
+ },
+ {
+  "file": "c15-L2-right.mp3",
+  "text": "Correct. Grouping treats all nulls as one value. That matches R's duplicated, which also treats two missing values as equal."
+ },
+ {
+  "file": "c15-L2-wrong.mp3",
+  "text": "Not quite. The answer is D. Grouping treats all nulls as one value. That matches R's duplicated, which also treats two missing values as equal."
+ },
+ {
+  "file": "c15-L3-stem.mp3",
+  "text": "Look at the code on the screen. Run on the raw sheet, how many groups does this return?"
+ },
+ {
+  "file": "c15-L3-optA.mp3",
+  "text": "Option A. Four, one per re-pasted pair, including the pair with no worth."
+ },
+ {
+  "file": "c15-L3-optB.mp3",
+  "text": "Option B. Three, because the two null worths form two groups of one."
+ },
+ {
+  "file": "c15-L3-optC.mp3",
+  "text": "Option C. Three, because the copy with a re-typed dividend no longer matches."
+ },
+ {
+  "file": "c15-L3-optD.mp3",
+  "text": "Option D. Five, because the 2022 pair with two worths also repeats."
+ },
+ {
+  "file": "c15-L3-right.mp3",
+  "text": "Correct. Group by puts the two null worths together, the dividend is not in the key, and the 2022 pair has different worths. So exactly the four pasted pairs remain."
+ },
+ {
+  "file": "c15-L3-wrong.mp3",
+  "text": "Not quite. The answer is A. Group by puts the two null worths together, the dividend is not in the key, and the 2022 pair has different worths. So exactly the four pasted pairs remain."
+ },
+ {
+  "file": "c16-L1-stem.mp3",
+  "text": "Not in exclusions inside a C T E. Block five's first C T E drops the people on the exclusion table. What was the same step in the R code?"
+ },
+ {
+  "file": "c16-L1-optA.mp3",
+  "text": "Option A. A filter on the state column that keeps only California residents."
+ },
+ {
+  "file": "c16-L1-optB.mp3",
+  "text": "Option B. A filter that keeps rows whose id is not among the excluded ids."
+ },
+ {
+  "file": "c16-L1-optC.mp3",
+  "text": "Option C. A distinct call that removes the excluded person's repeated rows."
+ },
+ {
+  "file": "c16-L1-optD.mp3",
+  "text": "Option D. A left join that sets the excluded person's worth to missing."
+ },
+ {
+  "file": "c16-L1-right.mp3",
+  "text": "Correct. In R it was filter with the negated percent in percent operator. In SQL the id list lives in a table and the test is not in, followed by a subquery."
+ },
+ {
+  "file": "c16-L1-wrong.mp3",
+  "text": "Not quite. The answer is B. In R it was filter with the negated percent in percent operator. In SQL the id list lives in a table and the test is not in, followed by a subquery."
+ },
+ {
+  "file": "c16-L2-stem.mp3",
+  "text": "Look at the code on the screen. The exclusion table gains a row whose id is null. What does kept return now?"
+ },
+ {
+  "file": "c16-L2-optA.mp3",
+  "text": "Option A. Every row, since the null entry matches nobody and is ignored."
+ },
+ {
+  "file": "c16-L2-optB.mp3",
+  "text": "Option B. Every row except those of the person who was already excluded."
+ },
+ {
+  "file": "c16-L2-optC.mp3",
+  "text": "Option C. No rows, since not in with a null in its list is never true."
+ },
+ {
+  "file": "c16-L2-optD.mp3",
+  "text": "Option D. An error, since a not in subquery may not return a null."
+ },
+ {
+  "file": "c16-L2-right.mp3",
+  "text": "Correct. For anyone not listed, the test becomes unknown instead of true, and where keeps only true. The loaders never write a null id for this reason."
+ },
+ {
+  "file": "c16-L2-wrong.mp3",
+  "text": "Not quite. The answer is C. For anyone not listed, the test becomes unknown instead of true, and where keeps only true. The loaders never write a null id for this reason."
+ },
+ {
+  "file": "c16-L3-stem.mp3",
+  "text": "Not in exclusions inside a C T E. The file drops excluded ids first and re-pasted copies second. Would swapping the two steps change the result?"
+ },
+ {
+  "file": "c16-L3-optA.mp3",
+  "text": "Option A. No, because the groups include the id, so an excluded person never shares one."
+ },
+ {
+  "file": "c16-L3-optB.mp3",
+  "text": "Option B. Yes, since numbering first would shift the copy numbers of other people."
+ },
+ {
+  "file": "c16-L3-optC.mp3",
+  "text": "Option C. Yes, since not in cannot follow a window function in the same chain."
+ },
+ {
+  "file": "c16-L3-optD.mp3",
+  "text": "Option D. No, but only because the excluded person has no re-pasted rows."
+ },
+ {
+  "file": "c16-L3-right.mp3",
+  "text": "Correct. Each group holds one person's rows, so removing a person before or after numbering leaves everyone else's copy numbers alone. The file keeps the R order for readability."
+ },
+ {
+  "file": "c16-L3-wrong.mp3",
+  "text": "Not quite. The answer is A. Each group holds one person's rows, so removing a person before or after numbering leaves everyone else's copy numbers alone. The file keeps the R order for readability."
+ },
+ {
+  "file": "c17-L1-stem.mp3",
+  "text": "Look at the code on the screen. In 2025 one kept row has no worth. What does this n report for 2025?"
+ },
+ {
+  "file": "c17-L1-optA.mp3",
+  "text": "Option A. The right number, since block five already dropped every row that had no worth."
+ },
+ {
+  "file": "c17-L1-optB.mp3",
+  "text": "Option B. Null for 2025, since one of the values in the group is null."
+ },
+ {
+  "file": "c17-L1-optC.mp3",
+  "text": "Option C. The right number, since count of a column counts every row in the group."
+ },
+ {
+  "file": "c17-L1-optD.mp3",
+  "text": "Option D. One fewer than the number of people, since counting a column skips nulls."
+ },
+ {
+  "file": "c17-L1-right.mp3",
+  "text": "Correct. Count of a column counts its non-null values. The row with no worth is still a person, so the file uses count star."
+ },
+ {
+  "file": "c17-L1-wrong.mp3",
+  "text": "Not quite. The answer is D. Count of a column counts its non-null values. The row with no worth is still a person, so the file uses count star."
+ },
+ {
+  "file": "c17-L2-stem.mp3",
+  "text": "Yearly sums with coalesce and count. Every option profit value for 2019 is null. Without coalesce, what does the 2019 sum show?"
+ },
+ {
+  "file": "c17-L2-optA.mp3",
+  "text": "Option A. Null, while R's sum with n a dot r m equals true gives zero."
+ },
+ {
+  "file": "c17-L2-optB.mp3",
+  "text": "Option B. Zero, because sum skips the nulls and has nothing left to add."
+ },
+ {
+  "file": "c17-L2-optC.mp3",
+  "text": "Option C. An error, because sum cannot run on a column of only nulls."
+ },
+ {
+  "file": "c17-L2-optD.mp3",
+  "text": "Option D. Zero in SQLite, though other databases would return null."
+ },
+ {
+  "file": "c17-L2-right.mp3",
+  "text": "Correct. Sum over nothing but nulls is null in SQL. Coalesce with zero turns it into the zero that R's na dot r m sum returns."
+ },
+ {
+  "file": "c17-L2-wrong.mp3",
+  "text": "Not quite. The answer is A. Sum over nothing but nulls is null in SQL. Coalesce with zero turns it into the zero that R's na dot r m sum returns."
+ },
+ {
+  "file": "c17-L3-stem.mp3",
+  "text": "Look at the code on the screen. The column holds whole numbers stored as integers. What goes wrong?"
+ },
+ {
+  "file": "c17-L3-optA.mp3",
+  "text": "Option A. Nothing, since SQLite turns every division result into a real number."
+ },
+ {
+  "file": "c17-L3-optB.mp3",
+  "text": "Option B. The division is integer division, so the result is truncated."
+ },
+ {
+  "file": "c17-L3-optC.mp3",
+  "text": "Option C. Coalesce turns the sum into text, so the division returns null."
+ },
+ {
+  "file": "c17-L3-optD.mp3",
+  "text": "Option D. The sum overflows, since integer columns are limited to about two billion."
+ },
+ {
+  "file": "c17-L3-right.mp3",
+  "text": "Correct. In SQLite an integer divided by an integer is an integer, so seven divided by two is three. Dividing by one thousand point zero keeps the fraction."
+ },
+ {
+  "file": "c17-L3-wrong.mp3",
+  "text": "Not quite. The answer is B. In SQLite an integer divided by an integer is an integer, so seven divided by two is three. Dividing by one thousand point zero keeps the fraction."
+ },
+ {
+  "file": "c18-L1-stem.mp3",
+  "text": "Rows by label, not by position. Why does block eight choose the top-bracket rows by their label instead of by row num?"
+ },
+ {
+  "file": "c18-L1-optA.mp3",
+  "text": "Option A. Row num is not loaded from the sheet, so the query cannot use it."
+ },
+ {
+  "file": "c18-L1-optB.mp3",
+  "text": "Option B. Labels sort alphabetically, so the top bracket is always the last row."
+ },
+ {
+  "file": "c18-L1-optC.mp3",
+  "text": "Option C. Year blocks differ in length, so a new year moves every row below it."
+ },
+ {
+  "file": "c18-L1-optD.mp3",
+  "text": "Option D. Row numbers change each time SQLite rebuilds the table from the sheet."
+ },
+ {
+  "file": "c18-L1-right.mp3",
+  "text": "Correct. From 2021 the top bracket is split in two, so blocks have eight or nine rows, and a new year at the top shifts everything. The grader checks exactly that."
+ },
+ {
+  "file": "c18-L1-wrong.mp3",
+  "text": "Not quite. The answer is C. From 2021 the top bracket is split in two, so blocks have eight or nine rows, and a new year at the top shifts everything. The grader checks exactly that."
+ },
+ {
+  "file": "c18-L2-stem.mp3",
+  "text": "Look at the code on the screen. Why clean the label with replace before the case expression?"
+ },
+ {
+  "file": "c18-L2-optA.mp3",
+  "text": "Option A. Replace trims the spaces at both ends, which case needs before comparing."
+ },
+ {
+  "file": "c18-L2-optB.mp3",
+  "text": "Option B. Case cannot compare text that contains commas until the spaces are gone."
+ },
+ {
+  "file": "c18-L2-optC.mp3",
+  "text": "Option C. Replace makes the comparison ignore the difference between upper and lower case."
+ },
+ {
+  "file": "c18-L2-optD.mp3",
+  "text": "Option D. Labels usually have double spaces, but not always, so cleaning makes them match."
+ },
+ {
+  "file": "c18-L2-right.mp3",
+  "text": "Correct. One 2019 label has a single space where the others have two. Collapsing every double space gives one spelling, which the case and in lists can name."
+ },
+ {
+  "file": "c18-L2-wrong.mp3",
+  "text": "Not quite. The answer is D. One 2019 label has a single space where the others have two. Collapsing every double space gives one spelling, which the case and in lists can name."
+ },
+ {
+  "file": "c18-L3-stem.mp3",
+  "text": "Rows by label, not by position. The where clause lists the same three labels as the case expression. What would happen without it?"
+ },
+ {
+  "file": "c18-L3-optA.mp3",
+  "text": "Option A. Nothing, since case already removes rows whose label it does not list."
+ },
+ {
+  "file": "c18-L3-optB.mp3",
+  "text": "Option B. The query would fail, since a case expression needs a matching where."
+ },
+ {
+  "file": "c18-L3-optC.mp3",
+  "text": "Option C. Only the first top bracket of each year would stay in the table."
+ },
+ {
+  "file": "c18-L3-optD.mp3",
+  "text": "Option D. Every bracket would stay, with a null key on all but the top ones."
+ },
+ {
+  "file": "c18-L3-right.mp3",
+  "text": "Correct. A case with no else returns null for unlisted labels, but it never removes a row. Filtering is the job of where."
+ },
+ {
+  "file": "c18-L3-wrong.mp3",
+  "text": "Not quite. The answer is D. A case with no else returns null for unlisted labels, but it never removes a row. Filtering is the job of where."
  }
 ]

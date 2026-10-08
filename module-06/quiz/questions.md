@@ -399,6 +399,217 @@ ok = maxd <= TOL and n_ours == n_key
 - C) As a logic error in the date filter, since the authors' code skips those dates
 - D) As unexplained, because a vintage gap needs a different code version, not a different data file
 
+## 13. Keeping the first copy with row number
+**Warm-up.** (code) Look at the code on the screen. Which row of each group does the final where clause keep?
+
+```sql
+numbered AS (
+  SELECT kept.*,
+         ROW_NUMBER() OVER (
+           PARTITION BY year, forbes_id, forbes_worth
+           ORDER BY row_num
+         ) AS copy_num
+  FROM kept
+)
+SELECT * FROM numbered
+WHERE copy_num = 1;
+```
+
+- A) The row with the lowest row num, the first copy in sheet order
+- B) The row with the highest worth, since the window ranks each group by worth
+- C) The last copy pasted, because row number counts back from the end of the sheet
+- D) Only rows whose group has a single member, so every repeated row is dropped
+
+**Core.** In R, this filter was not duplicated on year, id and worth. What does ordering the window by row num reproduce?
+- A) That duplicated sorts the data by its key columns before it marks repeats
+- B) That duplicated flags later repeats, so the earliest row stays
+- C) That duplicated keeps the last occurrence of each row unless told otherwise
+- D) That group by in R sorts each group ascending before it summarises
+
+**Deep.** (code) Look at the code on the screen. The order by now says descending. What changes in the kept table?
+
+```sql
+ROW_NUMBER() OVER (
+  PARTITION BY year, forbes_id, forbes_worth
+  ORDER BY row_num DESC
+) AS copy_num
+...
+WHERE copy_num = 1
+```
+
+- A) Nothing, because copy number one is always the first row of the sheet
+- B) The query fails, because row number only accepts an ascending order
+- C) The last copy of each group is kept, so a re-typed value can replace the original
+- D) Whole groups are dropped, because numbering starts at the bottom of the sheet
+
+## 14. What counts as a copy
+**Warm-up.** One person has two rows in 2022, worth eight thousand and five thousand two hundred fifty six. What does block five do with them?
+- A) Keeps the first, since one person cannot appear twice in the same year
+- B) Keeps the larger worth, since partition by orders each group by worth
+- C) Drops both, since people with repeated rows go on the exclusion table
+- D) Keeps both, since a different worth means two separately tracked fortunes
+
+**Core.** (code) Look at the code on the screen. Why does this remove none of the re-pasted rows?
+
+```sql
+SELECT DISTINCT *
+FROM data_sec_all
+WHERE forbes_id NOT IN (
+  SELECT forbes_id FROM data_sec_agg_exclude);
+```
+
+- A) Row num differs on every row, so no two rows are identical
+- B) Distinct skips rows with a null, and every pasted row has a null somewhere
+- C) Distinct is only allowed together with group by, so it is ignored here
+- D) Distinct works within one C T E at a time, not across the whole sheet
+
+**Deep.** One pasted copy differs from its original only in the dividend column. Which partition columns handle every case in the sheet correctly?
+- A) Every column, so that only rows identical in every cell count as copies
+- B) Year, id and worth, so the copy matches on the key and is dropped
+- C) Year and id only, so every repeated person and year keeps a single row
+- D) Row num alone, since it identifies each row of the sheet uniquely
+
+## 15. Nulls in groups versus equality
+**Warm-up.** (code) Look at the code on the screen. Which pasted copy does this version fail to remove?
+
+```sql
+SELECT a.*
+FROM data_sec_all a
+WHERE NOT EXISTS (
+  SELECT 1 FROM data_sec_all b
+  WHERE b.year = a.year
+    AND b.forbes_id = a.forbes_id
+    AND b.forbes_worth = a.forbes_worth
+    AND b.row_num < a.row_num);
+```
+
+- A) The copy with a re-typed dividend, because its other columns differ
+- B) None of them, because not exists treats two nulls as equal
+- C) The copy of the row with no worth, because null equals null is not true
+- D) Every copy, because the row num test compares the two rows in the wrong direction
+
+**Core.** How does partition by treat two rows whose worth is null?
+- A) It puts each in a group of its own, since null never equals null
+- B) It leaves both out of the numbering, since window functions skip nulls
+- C) It stops with an error, since a partition key cannot be null
+- D) It puts them in the same group, just as group by does
+
+**Deep.** (code) Look at the code on the screen. Run on the raw sheet, how many groups does this return?
+
+```sql
+SELECT year, forbes_id, forbes_worth,
+       COUNT(*) AS n_rows
+FROM data_sec_all
+GROUP BY year, forbes_id, forbes_worth
+HAVING COUNT(*) > 1;
+```
+
+- A) Four, one per re-pasted pair, including the pair with no worth
+- B) Three, because the two null worths form two groups of one
+- C) Three, because the copy with a re-typed dividend no longer matches
+- D) Five, because the 2022 pair with two worths also repeats
+
+## 16. Not in exclusions inside a C T E
+**Warm-up.** Block five's first C T E drops the people on the exclusion table. What was the same step in the R code?
+- A) A filter on the state column that keeps only California residents
+- B) A filter that keeps rows whose id is not among the excluded ids
+- C) A distinct call that removes the excluded person's repeated rows
+- D) A left join that sets the excluded person's worth to missing
+
+**Core.** (code) Look at the code on the screen. The exclusion table gains a row whose id is null. What does kept return now?
+
+```sql
+WITH kept AS (
+  SELECT *
+  FROM data_sec_all
+  WHERE forbes_id NOT IN (
+    SELECT forbes_id FROM data_sec_agg_exclude)
+)
+```
+
+- A) Every row, since the null entry matches nobody and is ignored
+- B) Every row except those of the person who was already excluded
+- C) No rows, since not in with a null in its list is never true
+- D) An error, since a not in subquery may not return a null
+
+**Deep.** The file drops excluded ids first and re-pasted copies second. Would swapping the two steps change the result?
+- A) No, because the groups include the id, so an excluded person never shares one
+- B) Yes, since numbering first would shift the copy numbers of other people
+- C) Yes, since not in cannot follow a window function in the same chain
+- D) No, but only because the excluded person has no re-pasted rows
+
+## 17. Yearly sums with coalesce and count
+**Warm-up.** (code) Look at the code on the screen. In 2025 one kept row has no worth. What does this n report for 2025?
+
+```sql
+SELECT year,
+       COUNT(forbes_worth) AS n,
+       COALESCE(SUM(forbes_worth), 0) / 1000.0
+         AS forbes_worth
+FROM data_sec_all_kept
+GROUP BY year;
+```
+
+- A) The right number, since block five already dropped every row that had no worth
+- B) Null for 2025, since one of the values in the group is null
+- C) The right number, since count of a column counts every row in the group
+- D) One fewer than the number of people, since counting a column skips nulls
+
+**Core.** Every option profit value for 2019 is null. Without coalesce, what does the 2019 sum show?
+- A) Null, while R's sum with n a dot r m equals true gives zero
+- B) Zero, because sum skips the nulls and has nothing left to add
+- C) An error, because sum cannot run on a column of only nulls
+- D) Zero in SQLite, though other databases would return null
+
+**Deep.** (code) Look at the code on the screen. The column holds whole numbers stored as integers. What goes wrong?
+
+```sql
+SELECT taxable_year,
+       COALESCE(SUM(all_returns), 0) / 1000
+         AS returns_thousands
+FROM ftb_b4a
+GROUP BY taxable_year;
+```
+
+- A) Nothing, since SQLite turns every division result into a real number
+- B) The division is integer division, so the result is truncated
+- C) Coalesce turns the sum into text, so the division returns null
+- D) The sum overflows, since integer columns are limited to about two billion
+
+## 18. Rows by label, not by position
+**Warm-up.** Why does block eight choose the top-bracket rows by their label instead of by row num?
+- A) Row num is not loaded from the sheet, so the query cannot use it
+- B) Labels sort alphabetically, so the top bracket is always the last row
+- C) Year blocks differ in length, so a new year moves every row below it
+- D) Row numbers change each time SQLite rebuilds the table from the sheet
+
+**Core.** (code) Look at the code on the screen. Why clean the label with replace before the case expression?
+
+```sql
+WITH labelled AS (
+  SELECT row_num, taxable_year,
+         REPLACE(agic, '  ', ' ') AS agic, ...
+  FROM ftb_b4a
+  WHERE taxable_year IS NOT NULL
+)
+SELECT taxable_year,
+       CASE agic
+         WHEN '5,000,000 and over' THEN '5m_plus'
+         ...
+       END AS bracket, ...
+```
+
+- A) Replace trims the spaces at both ends, which case needs before comparing
+- B) Case cannot compare text that contains commas until the spaces are gone
+- C) Replace makes the comparison ignore the difference between upper and lower case
+- D) Labels usually have double spaces, but not always, so cleaning makes them match
+
+**Deep.** The where clause lists the same three labels as the case expression. What would happen without it?
+- A) Nothing, since case already removes rows whose label it does not list
+- B) The query would fail, since a case expression needs a matching where
+- C) Only the first top bracket of each year would stay in the table
+- D) Every bracket would stay, with a null key on all but the top ones
+
 ## Answer key
 
 - 1.1 Filter order and the threshold, Warm-up: **A**. Worth is in millions, so one thousand million is one billion dollars. The later tables divide by one thousand to report billions.
@@ -437,3 +648,21 @@ ok = maxd <= TOL and n_ours == n_key
 - 12.1 Checking and vintage gaps, Warm-up: **D**. Aligning on a key makes the check immune to row order and number formatting. Then rows on one side only, counts, and each cell are compared.
 - 12.2 Checking and vintage gaps, Core: **C**. The real differences were about one in a trillion, from the order of addition. A missing person changes counts and fails no matter what the tolerance is.
 - 12.3 Checking and vintage gaps, Deep: **B**. You can name the difference, extra dates from a later data file, and everything shared agrees. That is a vintage gap. Unexplained is for differences you cannot name.
+- 13.1 Keeping the first copy with row number, Warm-up: **A**. Row number numbers each group in the order given, here by row num, so copy number one is the row nearest the top of the sheet.
+- 13.2 Keeping the first copy with row number, Core: **B**. Duplicated flags every row that repeats an earlier one, so negating it keeps the first occurrence. Ordering by row num makes the first copy number one.
+- 13.3 Keeping the first copy with row number, Deep: **C**. Copy number one goes to the first row in the window's order. Sorted descending, that is the last pasted copy, which wins even if a cell was re-typed.
+- 14.1 What counts as a copy, Warm-up: **D**. The worth is part of the key, so the two rows land in different groups and each is copy number one. Only true re-pastes share all three values.
+- 14.2 What counts as a copy, Core: **A**. Select distinct star compares every column, including the sheet position. The original and its copy always differ there.
+- 14.3 What counts as a copy, Deep: **B**. The key says what one observation is. Every column would keep the re-typed copy, year and id alone would drop the real 2022 pair, and row num groups nothing.
+- 15.1 Nulls in groups versus equality, Warm-up: **C**. The equality test on worth is unknown when both worths are null, so not exists finds no earlier row and the copy stays. Partition by would have grouped them.
+- 15.2 Nulls in groups versus equality, Core: **D**. Grouping treats all nulls as one value. That matches R's duplicated, which also treats two missing values as equal.
+- 15.3 Nulls in groups versus equality, Deep: **A**. Group by puts the two null worths together, the dividend is not in the key, and the 2022 pair has different worths. So exactly the four pasted pairs remain.
+- 16.1 Not in exclusions inside a C T E, Warm-up: **B**. In R it was filter with the negated percent in percent operator. In SQL the id list lives in a table and the test is not in, followed by a subquery.
+- 16.2 Not in exclusions inside a C T E, Core: **C**. For anyone not listed, the test becomes unknown instead of true, and where keeps only true. The loaders never write a null id for this reason.
+- 16.3 Not in exclusions inside a C T E, Deep: **A**. Each group holds one person's rows, so removing a person before or after numbering leaves everyone else's copy numbers alone. The file keeps the R order for readability.
+- 17.1 Yearly sums with coalesce and count, Warm-up: **D**. Count of a column counts its non-null values. The row with no worth is still a person, so the file uses count star.
+- 17.2 Yearly sums with coalesce and count, Core: **A**. Sum over nothing but nulls is null in SQL. Coalesce with zero turns it into the zero that R's na dot r m sum returns.
+- 17.3 Yearly sums with coalesce and count, Deep: **B**. In SQLite an integer divided by an integer is an integer, so seven divided by two is three. Dividing by one thousand point zero keeps the fraction.
+- 18.1 Rows by label, not by position, Warm-up: **C**. From 2021 the top bracket is split in two, so blocks have eight or nine rows, and a new year at the top shifts everything. The grader checks exactly that.
+- 18.2 Rows by label, not by position, Core: **D**. One 2019 label has a single space where the others have two. Collapsing every double space gives one spelling, which the case and in lists can name.
+- 18.3 Rows by label, not by position, Deep: **D**. A case with no else returns null for unlisted labels, but it never removes a row. Filtering is the job of where.

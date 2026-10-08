@@ -211,6 +211,144 @@ itself a hint that the code and the sheet are different vintages (see below).
 **Course modules.** 3 (GROUP BY) and 1 (`SUM(CASE WHEN ...)`). **Beyond the course.**
 `IN (...)` and `NOT IN (...)` with literal lists.
 
+## Part 2: the paper's second step, in SQL
+
+The two-step idea above has a second step: the authors' spreadsheet to the paper's tables.
+The real project reproduces that step from the **public** workbook, and two of its inputs
+go through shared SQL files, run unchanged from R and from Python:
+`02_data_sec_agg.sql` (a yearly SEC panel to yearly sums) and `03_ftb_b4a.sql` (a
+tax-statistics table to yearly totals and top-bracket rows). Before the SQL, both were R
+code. The course versions are Q5 to Q8, on three more synthetic tables in
+`data/rtb_sample.sqlite`:
+
+```
+data_sec_all          (row_num, year, forbes_id, 29 money columns)   235 rows, $ million
+data_sec_agg_exclude  (forbes_id)                                    1 invented id
+ftb_b4a               (row_num, taxable_year, agic, all_returns,     59 rows, $
+                       ca_agi, taxable_income, total_tax)
+```
+
+`row_num` is the row's position in the sheet it was loaded from. Both files need it, for
+opposite reasons: Q5 uses it to decide which copy of a row came first, and Q8 is about
+not using it to pick rows.
+
+## Block Q5: drop the excluded ids, then the re-pasted rows
+
+**What it computes.** `data_sec_all_kept`: the rows of the yearly panel that count, after
+two filters.
+
+**The R idiom it replaces.** `filter(!forbes_id %in% exclude_ids)` and then
+`filter(!duplicated(df[c("year", "forbes_id", "forbes_worth")]))`. `duplicated()` marks
+every row that repeats an earlier row on those columns, so `!duplicated()` keeps the first
+copy.
+
+**The SQL idiom.** Two CTEs. `kept` is the exclusion as `NOT IN (SELECT ...)`, the same
+pattern as Q1's exclude list, now in a CTE. `numbered` gives every row a copy number:
+
+```sql
+ROW_NUMBER() OVER (PARTITION BY year, forbes_id, forbes_worth ORDER BY row_num) AS copy_num
+```
+
+The window splits the rows into groups with the same year, id and worth, sorts each group
+by sheet position, and numbers it 1, 2, 3. `WHERE copy_num = 1` keeps the first row of
+each group, which is `!duplicated()`. Module 5 used the same function for "top N per
+group"; here N is 1 and the group is "the same row".
+
+**Why this key.** The real sheet has a four-row block pasted twice at its tail. Some
+copies are byte-identical, some are not (a re-typed cell outside the key). The key is
+what makes two rows the same observation: same person, same year, same worth. It also
+leaves alone two rows with the same person and year but a **different** worth, which in
+the real data are two separately tracked fortunes. The synthetic panel has all three
+cases: identical copies, a copy with a different `dividend`, and a 2022 pair with worths
+8,000 and 5,256.
+
+**Why not `DISTINCT`.** `SELECT DISTINCT *` compares every column, and `row_num` differs
+on every row, so it removes nothing. `DISTINCT` on the key columns alone would lose the
+other columns. A self-join (`NOT EXISTS` an earlier row with `b.forbes_worth =
+a.forbes_worth`) is closer, but `=` is never true for two NULLs, so a re-pasted row with
+no worth survives. `PARTITION BY` (like `GROUP BY`) puts all NULLs in one group, which
+is what `duplicated()` does with two `NA`s. The synthetic tail has one such row.
+
+**Does the order of the two filters matter?** Not here. The partition includes
+`forbes_id`, so an excluded person's rows never share a group with anyone else's, and
+removing them first or last changes no copy number. The file follows the order of the
+R code anyway, which makes the side-by-side reading easier.
+
+**Course modules.** 4 (CTE chain, `NOT IN (SELECT ...)`) and 5 (`ROW_NUMBER() OVER
+(PARTITION BY ... ORDER BY ...)`).
+
+## Block Q6: yearly sums with COALESCE
+
+**What it computes.** `data_sec_agg`: per year, the count `n` and 27 sums in $ billion.
+
+**The R idiom it replaces.** `group_by(year) |> summarise(n = n(), across(cols, \(x)
+sum(x, na.rm = TRUE) / 1000))`.
+
+**The SQL idiom.** One `GROUP BY year` and one line per column,
+`COALESCE(SUM(col), 0) / 1000.0 AS col`, in the sheet's column order. Three details:
+
+- **`COUNT(*)`, not `COUNT(forbes_worth)`.** `n` counts people, and a kept row can have
+  no worth (the synthetic 2025 has one). `COUNT(col)` skips NULLs and would give 29
+  instead of 30.
+- **`COALESCE(..., 0)`.** In the synthetic panel `option_profit` is NULL for every 2019
+  row. `SUM` over nothing but NULLs is NULL; R's `sum(na.rm = TRUE)` is 0. Same rule as
+  Q3 and Q4, now on 27 columns.
+- **`1000.0`, not `1000`.** In SQLite, integer divided by integer is integer division
+  (`7 / 2` is 3). The money columns here are REAL, so `/ 1000` would happen to work, but
+  a column of whole numbers loaded as INTEGER would be truncated. `1000.0` makes the
+  division floating point whatever the input type.
+
+The real file's header also notes a numerical detail: SQLite (3.43 and later) adds doubles
+with a compensated sum, R adds them one by one, so the two can differ around 1e-13 of the
+value. That is noise; the checks allow it.
+
+**Course modules.** 3 (GROUP BY, COUNT, SUM) and 1 (COALESCE).
+
+## Block Q7: yearly totals over all brackets
+
+**What it computes.** `ftb_b4a_year`: per taxable year, the number of brackets and the
+four sums (returns, AGI, taxable income, tax), in dollars.
+
+**The R idiom it replaces.** One `sum(column[first_row:last_row], na.rm = TRUE)` per year
+and column, with the row ranges typed in (rows 242 to 300 for one year in the real code).
+
+**The SQL idiom.** `GROUP BY taxable_year`, with `WHERE taxable_year IS NOT NULL` first.
+The loaded table ends with a footnote row that has no year; without the `WHERE`, `GROUP
+BY` would put it in a group of its own, with a NULL year. `n_brackets` (`COUNT(*)`) is a
+built-in check on the grouping: 9 for 2021 and 2022, 8 before (59 and 60 in the real
+sheet).
+
+## Block Q8: pick rows by label, not by position
+
+**What it computes.** `ftb_b4a_top`: the rows of the top income brackets, one per year up
+to 2020 and two from 2021 (when the source split the top bracket), with a short key.
+
+**The R idiom it replaces.** Row numbers again: "the top bracket of 2018 is sheet row
+300". That is correct for one version of the sheet and silently wrong for the next. In the
+synthetic table the year blocks have different lengths (8 or 9 rows), and the grader re-runs
+your file on a copy with a 2023 block added at the top, which moves every other row down by
+nine.
+
+**The SQL idiom.** Select by what the row **is**, its year and its label:
+
+- **`REPLACE(agic, '  ', ' ')`** in a CTE. The sheet writes labels with two spaces around
+  "to" and "and" (`'5,000,000  and  over'`), but not consistently (one synthetic 2019
+  label has a single space, as one real label does). Collapsing double spaces first lets
+  the rest of the query use normal labels. Note what `REPLACE` does: it replaces
+  non-overlapping pairs left to right, so three spaces become two, not one. It works here
+  because the sheet never has more than two.
+- **`CASE agic WHEN ... THEN ... END`**, the "simple" form of `CASE` (compare one
+  expression with several values), maps each label to `5m_plus`, `5m_to_10m` or
+  `10m_plus`. A label not listed gives NULL.
+- **`WHERE agic IN (...)`** keeps only those three labels. Because the `WHERE` uses the
+  same list as the `CASE`, no row with a NULL bracket can get through.
+
+`row_num` stays in the output, as information (which sheet row each value came from),
+and to sort; it is never used to choose.
+
+**Course modules.** 4 (CTE) and 1 (`CASE`, `IN`). **Beyond the course.** `REPLACE`, and
+the simple form of `CASE`.
+
 ## Beyond the course, in one place
 
 | Idiom | Where | What it does |
@@ -226,6 +364,12 @@ itself a hint that the code and the sheet are different vintages (see below).
 | `ORDER BY (col = 'Total')` | Q3 | puts one labelled row last |
 | `NULLIF(x, 0)` | not used | the zero-denominator guard, unnecessary here |
 | no dot-commands | the whole file | the file runs from Python and R, not only the CLI |
+| `ROW_NUMBER() OVER (PARTITION BY key ORDER BY row_num)` | Q5 | keeps the first copy of each row, R's `!duplicated()` |
+| `NOT IN (SELECT ...)` inside a CTE | Q5 | an exclusion list as one step of a chain |
+| `/ 1000.0` | Q6 | floating-point division whatever the column type |
+| `WHERE col IS NOT NULL` before `GROUP BY` | Q7 | no stray NULL group from a footnote row |
+| `REPLACE(text, '  ', ' ')` | Q8 | normalises labels before matching them |
+| `CASE col WHEN 'a' THEN ... END` | Q8 | maps labels to short keys |
 
 ## NULL semantics, all in one place
 
@@ -238,6 +382,8 @@ itself a hint that the code and the sheet are different vintages (see below).
 | `AVG(x)` | 6 (12 / 2, not 12 / 3) | NULL |
 | `x >= 1000` in `WHERE` | NULL rows dropped | all dropped |
 | `x NOT IN (SELECT ...)` with a NULL in the list | false or NULL for every row | zero rows kept |
+| `PARTITION BY x` or `GROUP BY x` | NULLs form one group | one group |
+| `a.x = b.x` in a join | never true when either side is NULL | no matches |
 
 The real file uses `COUNT(*)` for `n_billionaires`, which is right because Q1 already
 dropped rows with NULL worth. `COUNT(forbes_public_worth)` would count only people with a
@@ -278,11 +424,13 @@ tolerance to make a mismatch go away.
 ## The drill
 
 1. `Rscript data/build_rtb_sample.R` (once; it also writes `module-06/expected/`).
-2. Write the four blocks in `module-06/exercise.sql` (or a copy).
+2. Write the eight blocks in `module-06/exercise.sql` (or a copy): Q1 to Q4 for part 1,
+   Q5 to Q8 for part 2.
 3. `python module-06/check.py module-06/exercise.sql` prints one line per block. A blank file
-   fails all four; `module-06/solution.sql` passes all four.
+   fails all eight; `module-06/solution.sql` passes all eight. Q7 and Q8 are graded twice,
+   the second time on a sheet with one more year at the top.
 4. Listen to `module-06/lesson/sql-in-a-real-replication.m4b`, and take the walking quiz
    (link in `module-06/quiz/README.md`).
-5. Then read the real file and its README in
+5. Then read the real files (`01_rtb_ca.sql`, `02_data_sec_agg.sql`, `03_ftb_b4a.sql`) and the README in
    [`opa-prop40/bsz-analysis/sql/`](https://github.com/fhoces/opa-prop40/tree/main/bsz-analysis/sql),
    which also documents how it was checked against the authors' sheets.

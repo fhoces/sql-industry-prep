@@ -509,6 +509,258 @@
      "why": "You can name the difference, extra dates from a later data file, and everything shared agrees. That is a vintage gap. Unexplained is for differences you cannot name."
     }
    }
+  },
+  {
+   "id": "c13",
+   "title": "Keeping the first copy with row number",
+   "levels": {
+    "1": {
+     "q": "Look at the code on the screen. Which row of each group does the final where clause keep?",
+     "opts": [
+      "The row with the lowest row num, the first copy in sheet order",
+      "The row with the highest worth, since the window ranks each group by worth",
+      "The last copy pasted, because row number counts back from the end of the sheet",
+      "Only rows whose group has a single member, so every repeated row is dropped"
+     ],
+     "answer": 0,
+     "why": "Row number numbers each group in the order given, here by row num, so copy number one is the row nearest the top of the sheet.",
+     "code": "numbered AS (\n  SELECT kept.*,\n         ROW_NUMBER() OVER (\n           PARTITION BY year, forbes_id, forbes_worth\n           ORDER BY row_num\n         ) AS copy_num\n  FROM kept\n)\nSELECT * FROM numbered\nWHERE copy_num = 1;",
+     "lang": "sql"
+    },
+    "2": {
+     "q": "In R, this filter was not duplicated on year, id and worth. What does ordering the window by row num reproduce?",
+     "opts": [
+      "That duplicated sorts the data by its key columns before it marks repeats",
+      "That duplicated flags later repeats, so the earliest row stays",
+      "That duplicated keeps the last occurrence of each row unless told otherwise",
+      "That group by in R sorts each group ascending before it summarises"
+     ],
+     "answer": 1,
+     "why": "Duplicated flags every row that repeats an earlier one, so negating it keeps the first occurrence. Ordering by row num makes the first copy number one."
+    },
+    "3": {
+     "q": "Look at the code on the screen. The order by now says descending. What changes in the kept table?",
+     "opts": [
+      "Nothing, because copy number one is always the first row of the sheet",
+      "The query fails, because row number only accepts an ascending order",
+      "The last copy of each group is kept, so a re-typed value can replace the original",
+      "Whole groups are dropped, because numbering starts at the bottom of the sheet"
+     ],
+     "answer": 2,
+     "why": "Copy number one goes to the first row in the window's order. Sorted descending, that is the last pasted copy, which wins even if a cell was re-typed.",
+     "code": "ROW_NUMBER() OVER (\n  PARTITION BY year, forbes_id, forbes_worth\n  ORDER BY row_num DESC\n) AS copy_num\n...\nWHERE copy_num = 1",
+     "lang": "sql"
+    }
+   }
+  },
+  {
+   "id": "c14",
+   "title": "What counts as a copy",
+   "levels": {
+    "1": {
+     "q": "One person has two rows in 2022, worth eight thousand and five thousand two hundred fifty six. What does block five do with them?",
+     "opts": [
+      "Keeps the first, since one person cannot appear twice in the same year",
+      "Keeps the larger worth, since partition by orders each group by worth",
+      "Drops both, since people with repeated rows go on the exclusion table",
+      "Keeps both, since a different worth means two separately tracked fortunes"
+     ],
+     "answer": 3,
+     "why": "The worth is part of the key, so the two rows land in different groups and each is copy number one. Only true re-pastes share all three values."
+    },
+    "2": {
+     "q": "Look at the code on the screen. Why does this remove none of the re-pasted rows?",
+     "opts": [
+      "Row num differs on every row, so no two rows are identical",
+      "Distinct skips rows with a null, and every pasted row has a null somewhere",
+      "Distinct is only allowed together with group by, so it is ignored here",
+      "Distinct works within one C T E at a time, not across the whole sheet"
+     ],
+     "answer": 0,
+     "why": "Select distinct star compares every column, including the sheet position. The original and its copy always differ there.",
+     "code": "SELECT DISTINCT *\nFROM data_sec_all\nWHERE forbes_id NOT IN (\n  SELECT forbes_id FROM data_sec_agg_exclude);",
+     "lang": "sql"
+    },
+    "3": {
+     "q": "One pasted copy differs from its original only in the dividend column. Which partition columns handle every case in the sheet correctly?",
+     "opts": [
+      "Every column, so that only rows identical in every cell count as copies",
+      "Year, id and worth, so the copy matches on the key and is dropped",
+      "Year and id only, so every repeated person and year keeps a single row",
+      "Row num alone, since it identifies each row of the sheet uniquely"
+     ],
+     "answer": 1,
+     "why": "The key says what one observation is. Every column would keep the re-typed copy, year and id alone would drop the real 2022 pair, and row num groups nothing."
+    }
+   }
+  },
+  {
+   "id": "c15",
+   "title": "Nulls in groups versus equality",
+   "levels": {
+    "1": {
+     "q": "Look at the code on the screen. Which pasted copy does this version fail to remove?",
+     "opts": [
+      "The copy with a re-typed dividend, because its other columns differ",
+      "None of them, because not exists treats two nulls as equal",
+      "The copy of the row with no worth, because null equals null is not true",
+      "Every copy, because the row num test compares the two rows in the wrong direction"
+     ],
+     "answer": 2,
+     "why": "The equality test on worth is unknown when both worths are null, so not exists finds no earlier row and the copy stays. Partition by would have grouped them.",
+     "code": "SELECT a.*\nFROM data_sec_all a\nWHERE NOT EXISTS (\n  SELECT 1 FROM data_sec_all b\n  WHERE b.year = a.year\n    AND b.forbes_id = a.forbes_id\n    AND b.forbes_worth = a.forbes_worth\n    AND b.row_num < a.row_num);",
+     "lang": "sql"
+    },
+    "2": {
+     "q": "How does partition by treat two rows whose worth is null?",
+     "opts": [
+      "It puts each in a group of its own, since null never equals null",
+      "It leaves both out of the numbering, since window functions skip nulls",
+      "It stops with an error, since a partition key cannot be null",
+      "It puts them in the same group, just as group by does"
+     ],
+     "answer": 3,
+     "why": "Grouping treats all nulls as one value. That matches R's duplicated, which also treats two missing values as equal."
+    },
+    "3": {
+     "q": "Look at the code on the screen. Run on the raw sheet, how many groups does this return?",
+     "opts": [
+      "Four, one per re-pasted pair, including the pair with no worth",
+      "Three, because the two null worths form two groups of one",
+      "Three, because the copy with a re-typed dividend no longer matches",
+      "Five, because the 2022 pair with two worths also repeats"
+     ],
+     "answer": 0,
+     "why": "Group by puts the two null worths together, the dividend is not in the key, and the 2022 pair has different worths. So exactly the four pasted pairs remain.",
+     "code": "SELECT year, forbes_id, forbes_worth,\n       COUNT(*) AS n_rows\nFROM data_sec_all\nGROUP BY year, forbes_id, forbes_worth\nHAVING COUNT(*) > 1;",
+     "lang": "sql"
+    }
+   }
+  },
+  {
+   "id": "c16",
+   "title": "Not in exclusions inside a C T E",
+   "levels": {
+    "1": {
+     "q": "Block five's first C T E drops the people on the exclusion table. What was the same step in the R code?",
+     "opts": [
+      "A filter on the state column that keeps only California residents",
+      "A filter that keeps rows whose id is not among the excluded ids",
+      "A distinct call that removes the excluded person's repeated rows",
+      "A left join that sets the excluded person's worth to missing"
+     ],
+     "answer": 1,
+     "why": "In R it was filter with the negated percent in percent operator. In SQL the id list lives in a table and the test is not in, followed by a subquery."
+    },
+    "2": {
+     "q": "Look at the code on the screen. The exclusion table gains a row whose id is null. What does kept return now?",
+     "opts": [
+      "Every row, since the null entry matches nobody and is ignored",
+      "Every row except those of the person who was already excluded",
+      "No rows, since not in with a null in its list is never true",
+      "An error, since a not in subquery may not return a null"
+     ],
+     "answer": 2,
+     "why": "For anyone not listed, the test becomes unknown instead of true, and where keeps only true. The loaders never write a null id for this reason.",
+     "code": "WITH kept AS (\n  SELECT *\n  FROM data_sec_all\n  WHERE forbes_id NOT IN (\n    SELECT forbes_id FROM data_sec_agg_exclude)\n)",
+     "lang": "sql"
+    },
+    "3": {
+     "q": "The file drops excluded ids first and re-pasted copies second. Would swapping the two steps change the result?",
+     "opts": [
+      "No, because the groups include the id, so an excluded person never shares one",
+      "Yes, since numbering first would shift the copy numbers of other people",
+      "Yes, since not in cannot follow a window function in the same chain",
+      "No, but only because the excluded person has no re-pasted rows"
+     ],
+     "answer": 0,
+     "why": "Each group holds one person's rows, so removing a person before or after numbering leaves everyone else's copy numbers alone. The file keeps the R order for readability."
+    }
+   }
+  },
+  {
+   "id": "c17",
+   "title": "Yearly sums with coalesce and count",
+   "levels": {
+    "1": {
+     "q": "Look at the code on the screen. In 2025 one kept row has no worth. What does this n report for 2025?",
+     "opts": [
+      "The right number, since block five already dropped every row that had no worth",
+      "Null for 2025, since one of the values in the group is null",
+      "The right number, since count of a column counts every row in the group",
+      "One fewer than the number of people, since counting a column skips nulls"
+     ],
+     "answer": 3,
+     "why": "Count of a column counts its non-null values. The row with no worth is still a person, so the file uses count star.",
+     "code": "SELECT year,\n       COUNT(forbes_worth) AS n,\n       COALESCE(SUM(forbes_worth), 0) / 1000.0\n         AS forbes_worth\nFROM data_sec_all_kept\nGROUP BY year;",
+     "lang": "sql"
+    },
+    "2": {
+     "q": "Every option profit value for 2019 is null. Without coalesce, what does the 2019 sum show?",
+     "opts": [
+      "Null, while R's sum with n a dot r m equals true gives zero",
+      "Zero, because sum skips the nulls and has nothing left to add",
+      "An error, because sum cannot run on a column of only nulls",
+      "Zero in SQLite, though other databases would return null"
+     ],
+     "answer": 0,
+     "why": "Sum over nothing but nulls is null in SQL. Coalesce with zero turns it into the zero that R's na dot r m sum returns."
+    },
+    "3": {
+     "q": "Look at the code on the screen. The column holds whole numbers stored as integers. What goes wrong?",
+     "opts": [
+      "Nothing, since SQLite turns every division result into a real number",
+      "The division is integer division, so the result is truncated",
+      "Coalesce turns the sum into text, so the division returns null",
+      "The sum overflows, since integer columns are limited to about two billion"
+     ],
+     "answer": 1,
+     "why": "In SQLite an integer divided by an integer is an integer, so seven divided by two is three. Dividing by one thousand point zero keeps the fraction.",
+     "code": "SELECT taxable_year,\n       COALESCE(SUM(all_returns), 0) / 1000\n         AS returns_thousands\nFROM ftb_b4a\nGROUP BY taxable_year;",
+     "lang": "sql"
+    }
+   }
+  },
+  {
+   "id": "c18",
+   "title": "Rows by label, not by position",
+   "levels": {
+    "1": {
+     "q": "Why does block eight choose the top-bracket rows by their label instead of by row num?",
+     "opts": [
+      "Row num is not loaded from the sheet, so the query cannot use it",
+      "Labels sort alphabetically, so the top bracket is always the last row",
+      "Year blocks differ in length, so a new year moves every row below it",
+      "Row numbers change each time SQLite rebuilds the table from the sheet"
+     ],
+     "answer": 2,
+     "why": "From 2021 the top bracket is split in two, so blocks have eight or nine rows, and a new year at the top shifts everything. The grader checks exactly that."
+    },
+    "2": {
+     "q": "Look at the code on the screen. Why clean the label with replace before the case expression?",
+     "opts": [
+      "Replace trims the spaces at both ends, which case needs before comparing",
+      "Case cannot compare text that contains commas until the spaces are gone",
+      "Replace makes the comparison ignore the difference between upper and lower case",
+      "Labels usually have double spaces, but not always, so cleaning makes them match"
+     ],
+     "answer": 3,
+     "why": "One 2019 label has a single space where the others have two. Collapsing every double space gives one spelling, which the case and in lists can name.",
+     "code": "WITH labelled AS (\n  SELECT row_num, taxable_year,\n         REPLACE(agic, '  ', ' ') AS agic, ...\n  FROM ftb_b4a\n  WHERE taxable_year IS NOT NULL\n)\nSELECT taxable_year,\n       CASE agic\n         WHEN '5,000,000 and over' THEN '5m_plus'\n         ...\n       END AS bracket, ...",
+     "lang": "sql"
+    },
+    "3": {
+     "q": "The where clause lists the same three labels as the case expression. What would happen without it?",
+     "opts": [
+      "Nothing, since case already removes rows whose label it does not list",
+      "The query would fail, since a case expression needs a matching where",
+      "Only the first top bracket of each year would stay in the table",
+      "Every bracket would stay, with a null key on all but the top ones"
+     ],
+     "answer": 3,
+     "why": "A case with no else returns null for unlisted labels, but it never removes a row. Filtering is the job of where."
+    }
+   }
   }
  ]
 }
