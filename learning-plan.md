@@ -16,6 +16,16 @@ write from a cold start in under two minutes each.
 | 5 | Window Functions | OVER, PARTITION BY, ranking, LAG/LEAD, frames, gaps and islands | Top-N per group, time since previous event, rolling 7-day average, longest streak |
 | 6 | SQL in a Real Replication | Reading and reproducing a real pipeline step: `DROP TABLE IF EXISTS` / `CREATE TABLE AS`, residency overrides via `IN (SELECT ...)` / `NOT IN (SELECT ...)`, one long table instead of seven, a condition in a `LEFT JOIN`'s `ON`, a `UNION ALL` total row, `SUM(CASE WHEN ...)`, NULL in `SUM` vs `COUNT`, no dot-commands, checking against an answer key and vintage gaps; part 2: `ROW_NUMBER() OVER (PARTITION BY ...)` to drop re-pasted rows, `NOT IN` in a CTE, yearly sums with `COALESCE` and `COUNT(*)`, `REPLACE` + `CASE` to pick rows by label | Rebuild the eight tables of `01_rtb_ca.sql`, `02_data_sec_agg.sql` and `03_ftb_b4a.sql` on synthetic data until `check.py` passes every block |
 
+## Prerequisites
+
+Modules 1 to 5 need no Python. Module 6 pairs with module 7 of the Python
+course ([python-for-r-users](https://github.com/fhoces/python-for-r-users)).
+Both are built on the same real files from `opa-prop40`, `01_rtb_ca.sql` and
+`02_data_sec_agg.sql`. Module 6 teaches what those queries compute. Python
+module 7 drills the Python that loads the data, runs the queries and checks
+the results, so take module 6 here first. Grading module 6 runs a Python
+script (`check.py`, needs pandas), but you write no Python.
+
 ## How to use this repo
 
 1. Build the SQLite database **once**: `Rscript data/setup.R`
