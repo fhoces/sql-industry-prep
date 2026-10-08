@@ -1,11 +1,11 @@
 # Intro to SQL
 
-A 5-module SQL refresher built around interview-style questions for an
+A 6-module SQL refresher built around interview-style questions for an
 applied policy economist role at a transportation network company. Every
 module is concept → code → 3–6 interview questions you should be able to
 write from a cold start in under two minutes each.
 
-**Time budget: ~5 hours**
+**Time budget: ~6.5 hours** (module 6 adds about 1.5 hours, including the 30-minute audio lesson)
 
 | # | Module | Concepts | Sample interview questions |
 |---|--------|----------|-----|
@@ -14,6 +14,7 @@ write from a cold start in under two minutes each.
 | 3 | GROUP BY, HAVING, Conversion Funnels | Per-group dashboards, compare-to-global, funnels, cohort retention | City dashboards, funnel analysis, cohort tables, bottom-N per group |
 | 4 | Subqueries and CTEs | Scalar / table / correlated subqueries, multi-step CTEs, first/last patterns | Each rider's first ride, multi-step funnel as CTE chain, active in each of last N weeks |
 | 5 | Window Functions | OVER, PARTITION BY, ranking, LAG/LEAD, frames, gaps and islands | Top-N per group, time since previous event, rolling 7-day average, longest streak |
+| 6 | SQL in a Real Replication | Reading and reproducing a real pipeline step: `DROP TABLE IF EXISTS` / `CREATE TABLE AS`, residency overrides via `IN (SELECT ...)` / `NOT IN (SELECT ...)`, one long table instead of seven, a condition in a `LEFT JOIN`'s `ON`, a `UNION ALL` total row, `SUM(CASE WHEN ...)`, NULL in `SUM` vs `COUNT`, no dot-commands, checking against an answer key and vintage gaps | Rebuild the four tables of `01_rtb_ca.sql` on a synthetic panel until `check.py` passes every block |
 
 ## How to use this repo
 

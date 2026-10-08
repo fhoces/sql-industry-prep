@@ -51,7 +51,8 @@ knitr::opts_chunk$set(connection = "con")
 <tr><td>2</td><td><a href="../module-02/slides.html">JOINs</a></td><td>✓ done</td><td><a href="../module-02/slides.html#sample">M2</a></td></tr>
 <tr><td>3</td><td><a href="../module-03/slides.html">GROUP BY, HAVING, Conversion Funnels</a></td><td>✓ done</td><td><a href="../module-03/slides.html#sample">M3</a></td></tr>
 <tr><td><b>4</b></td><td><b>Subqueries and CTEs</b> <i>(you are here)</i></td><td>← current</td><td><a href="#sample">M4</a></td></tr>
-<tr><td>5</td><td>Window Functions</td><td>upcoming</td><td></td></tr>
+<tr><td>5</td><td><a href="../module-05/slides.html">Window Functions</a></td><td>✓ done</td><td><a href="../module-05/slides.html#sample">M5</a></td></tr>
+<tr><td>6</td><td><a href="../module-06/slides.html">SQL in a Real Replication</a></td><td>✓ done</td><td><a href="../module-06/slides.html#sample">M6</a></td></tr>
 </table>
 
 ---
@@ -451,4 +452,5 @@ WHERE  rk <= 3;                                     -- top 3 per driver
 <tr><td>3</td><td><a href="../module-03/slides.html">GROUP BY, HAVING, Conversion Funnels</a></td><td>✓ done</td><td><a href="../module-03/slides.html#sample">M3</a></td></tr>
 <tr><td>4</td><td>Subqueries and CTEs <i>(just finished)</i></td><td>✓ done</td></tr>
 <tr><td><b>5</b></td><td><b>Window Functions</b></td><td>next</td><td></td></tr>
+<tr><td>6</td><td>SQL in a Real Replication</td><td>upcoming</td><td></td></tr>
 </table>
